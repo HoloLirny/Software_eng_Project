@@ -18,51 +18,55 @@ model user {
 }
 
 model student {
-  id           Int    @id
-  faculty      String @db.VarChar(255)
-  student_name String @db.VarChar(255)
-  course_students course_student[] // One-to-many relationship with course_student
-  attendances     attendance[]      // One-to-many relationship with attendance
+  id              Int              @id
+  faculty         String           @db.VarChar(255)
+  student_name    String           @db.VarChar(255)
+  attendances     attendance[]
+  course_students course_student[]
 }
 
 model course_student {
-  id           Int     @id @default(autoincrement())
-  course_id    Int
-  student_id   Int
-  course       course  @relation(fields: [course_id], references: [id]) // Foreign key to course
-  student      student @relation(fields: [student_id], references: [id]) // Foreign key to student
+  id         Int     @id @default(autoincrement())
+  course_id  Int
+  student_id Int
+  course     course  @relation(fields: [course_id], references: [id])
+  student    student @relation(fields: [student_id], references: [id])
+
+  @@index([course_id], map: "course_student_course_id_fkey")
+  @@index([student_id], map: "course_student_student_id_fkey")
 }
 
 model course {
-  id            Int       @id
-  course_name   String    @db.VarChar(255)
-  teacher_id    Int
-  total_student Int
-  scan_time     DateTime?
-  teacher       user      @relation(fields: [teacher_id], references: [id])
-  course_students course_student[] // One-to-many relationship with course_student
-  attendances     attendance[]      // One-to-many relationship with attendance
+  id              Int              @id
+  course_name     String           @db.VarChar(255)
+  teacher_id      Int
+  total_student   Int
+  scan_time       DateTime?
+  attendances     attendance[]
+  teacher         user             @relation(fields: [teacher_id], references: [id])
+  course_students course_student[]
 
   @@index([teacher_id], map: "course_teacher_id_fkey")
 }
 
 model attendance {
-  id         Int       @id @default(autoincrement())
+  id         Int               @id @default(autoincrement())
   student_id Int
   course_id  Int
-  date       DateTime  // Date of the attendance
-  time       DateTime  // Specific time of attendance
-  status     attendance_status @default(PRESENT) // Enum for attendance status
-  
-  student    student   @relation(fields: [student_id], references: [id]) // Foreign key to student
-  course     course    @relation(fields: [course_id], references: [id]) // Foreign key to course
+  date       DateTime
+  time       DateTime
+  status     attendance_status @default(PRESENT)
+  course     course            @relation(fields: [course_id], references: [id])
+  student    student           @relation(fields: [student_id], references: [id])
+
+  @@index([course_id], map: "attendance_course_id_fkey")
+  @@index([student_id], map: "attendance_student_id_fkey")
 }
 
 enum attendance_status {
   PRESENT
   ABSENT
   LATE
-  EXCUSED
 }
 
 enum user_user_role {
