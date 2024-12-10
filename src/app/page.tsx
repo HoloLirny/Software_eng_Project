@@ -12,7 +12,6 @@ export default async function UsersPage() {
       <ul>
         {users.map((user) => (
           <li key={user.id}>Name : {user.user_name} email : {user.email} Role : {user.user_role}</li>
-
         ))}
       </ul>
     </div>
