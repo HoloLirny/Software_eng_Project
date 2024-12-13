@@ -11,13 +11,13 @@ export default function AddCoursePage() {
   // Redirect to login if no session and session isn't loading
   useEffect(() => {
     if (status !== "loading" && !session) {
-      router.replace("../auth/Login");
+      router.replace("../auth/login");
     }
   }, [session, status, router]);
 
   // Handle sign-out
   const handleSignOut = () => {
-    signOut({ callbackUrl: "/auth/Login" }); // Redirect to Login page after signing out
+    signOut({ callbackUrl: "/auth/login" }); // Redirect to Login page after signing out
   };
 
   // UI based on session status

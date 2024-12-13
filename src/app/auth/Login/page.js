@@ -19,7 +19,7 @@ export default function SignIn() {
     if (res.error) {
       setError('Invalid credentials');
     } else {
-      window.location.href = '/Add-course'; // Redirect on successful login
+      window.location.href = '/add-course'; // Redirect on successful login
     }
   };
 

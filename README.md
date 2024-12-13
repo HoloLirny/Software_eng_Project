@@ -4,4 +4,5 @@ Set up to Start Project
 3. docker compose up
 4. npx prisma generate
 5. npx prisma migrate dev
+6. npm run dev
 
