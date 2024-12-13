@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -11,10 +11,21 @@ model user {
   id        Int             @id @default(autoincrement())
   user_name String
   email     String          @unique(map: "User_email_key")
-  phone     String          @unique(map: "User_phone_key")
   password  String
   user_role user_user_role? @default(TEACHER)
-  courses   course[]
+  user_courses user_course[]
+}
+
+
+model user_course {
+  id        Int   @id @default(autoincrement())
+  user_id   Int
+  course_id Int
+  user      user   @relation(fields: [user_id], references: [id])
+  course    course @relation(fields: [course_id], references: [id])
+
+  @@index([user_id])
+  @@index([course_id])
 }
 
 model student {
@@ -32,35 +43,33 @@ model course_student {
   course     course  @relation(fields: [course_id], references: [id])
   student    student @relation(fields: [student_id], references: [id])
 
-  @@index([course_id], map: "course_student_course_id_fkey")
-  @@index([student_id], map: "course_student_student_id_fkey")
+  @@index([course_id])
+  @@index([student_id])
 }
 
 model course {
   id              Int              @id
   course_name     String           @db.VarChar(255)
   teacher_id      Int
-  total_student   Int
+  total_student   Int?
   scan_time       DateTime?
   attendances     attendance[]
-  teacher         user             @relation(fields: [teacher_id], references: [id])
+  user_courses    user_course[]
   course_students course_student[]
-
-  @@index([teacher_id], map: "course_teacher_id_fkey")
 }
 
 model attendance {
   id         Int               @id @default(autoincrement())
   student_id Int
   course_id  Int
-  date       DateTime
-  time       DateTime
+  date       DateTime?
+  time       DateTime?
   status     attendance_status @default(PRESENT)
   course     course            @relation(fields: [course_id], references: [id])
   student    student           @relation(fields: [student_id], references: [id])
 
-  @@index([course_id], map: "attendance_course_id_fkey")
-  @@index([student_id], map: "attendance_student_id_fkey")
+  @@index([course_id])
+  @@index([student_id])
 }
 
 enum attendance_status {

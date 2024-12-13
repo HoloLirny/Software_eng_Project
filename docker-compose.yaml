@@ -1,19 +1,23 @@
-version: '3'
-
+version: '3.8'
 services:
-  database:
-    image: mysql
-    container_name: mysql-db
-    restart: always
+  postgres:
+    image: postgres:latest
     environment:
-      MYSQL_ROOT_PASSWORD: Kittiwin_741032
-      MYSQL_DATABASE: project_se_db
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: Kittiwin_741032
+      POSTGRES_DB: mydb
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
-
+      - postgres-data:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
 volumes:
-  mysql_data:
+  postgres-data:

@@ -7,7 +7,6 @@ export default function Register() {
   const [form, setForm] = useState({
     user_name: '',
     email: '',
-    phone: '',
     password: '',
     user_role: 'TEACHER', // Default role
   });
@@ -65,17 +64,6 @@ export default function Register() {
             type="email"
             name="email"
             value={form.email}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <br/>
-        <label>
-          Phone:
-          <input
-            type="text"
-            name="phone"
-            value={form.phone}
             onChange={handleChange}
             required
           />
