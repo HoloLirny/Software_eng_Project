@@ -14,6 +14,8 @@ model user {
   password  String
   user_role user_user_role? @default(TEACHER)
   user_courses user_course[]
+  uploaded_files file[]
+  sessions  session[]
 }
 
 
@@ -52,11 +54,28 @@ model course {
   course_name     String           @db.VarChar(255)
   teacher_id      Int
   total_student   Int?
-  scan_time       DateTime?
+  scan_time       Int?
   attendances     attendance[]
   user_courses    user_course[]
   course_students course_student[]
+  files           file[]
 }
+
+model file {
+  id        Int      @id @default(autoincrement())
+  course_id Int
+  uploaded_by Int
+  file_name String   @db.VarChar(255)
+  file_url  String   @db.VarChar(255)
+  uploaded_at DateTime @default(now())
+  
+  course    course   @relation(fields: [course_id], references: [id]) 
+  teacher     user     @relation(fields: [uploaded_by], references: [id])
+
+  @@index([course_id])
+  @@index([uploaded_by])
+}
+
 
 model attendance {
   id         Int               @id @default(autoincrement())
@@ -70,6 +89,17 @@ model attendance {
 
   @@index([course_id])
   @@index([student_id])
+}
+
+model session {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  session_token String   @unique
+  expires      DateTime
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  
+  user         user     @relation(fields: [user_id], references: [id])
 }
 
 enum attendance_status {

@@ -40,9 +40,6 @@ export const handler = NextAuth({
     }),
   ],
   adapter: PrismaAdapter(prisma),
-  pages: {
-    signIn: "/auth/Login", // Use absolute paths
-  },
   session: {
     strategy: "jwt",
   },
@@ -52,8 +49,7 @@ export const handler = NextAuth({
         token.id = user.id;
         token.user_name = user.user_name;
         token.email = user.email;
-        token.phone = user.phone;
-        token.role = user.user_role; // Add role if needed
+        token.role = user.user_role; 
       }
       return token;
     },
@@ -62,8 +58,7 @@ export const handler = NextAuth({
         id: token.id,
         user_name: token.user_name,
         email: token.email,
-        phone: token.phone,
-        role: token.role, // Add role if needed
+        role: token.role, 
       };
       return session;
     },
@@ -71,5 +66,4 @@ export const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
 });
 
-// Export the handler function for the API route
 export { handler as GET, handler as POST };
