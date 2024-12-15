@@ -16,7 +16,6 @@ export async function POST(req) {
       return new Response(JSON.stringify({ error: 'Email is already registered.' }), { status: 400 });
     }
 
-
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -26,7 +25,7 @@ export async function POST(req) {
         user_name,
         email,
         password: hashedPassword,
-        user_role: user_role || 'TEACHER', // Default to 'TEACHER' if not provided
+        user_role: user_role || 'TEACHER', 
       },
     });
 

@@ -1,37 +1,89 @@
 import prisma from "../../../../../prisma/prisma";
+// Thing left to do
+// connect with auth that link id of logined user 
 
 export async function POST(req) {
-  // Thing left to do
-  // = teacher_id = id of login user who has user_role == "TEACHER" from log in session
-  // = Throw error
   try {
-    const { id, course_name, teacher_id, total_student, scan_time } = await req.json();
+    const { id, course_name, total_student, scan_time } = await req.json();
 
-    if (!id || !course_name === undefined) {
+    // Validate required fields
+    if (!id || !course_name) {
       return new Response(
         JSON.stringify({
-          message: "Course ID, course name are required",
+          message: "Course ID and course name are required",
         }),
         { status: 400 }
       );
     }
 
-    // Create a new course record in the database
-    const newCourse = await prisma.course.create({
-      data: {
-        id,
-        course_name,
-        teacher_id, 
-        total_student,
-        scan_time,
-      },
+    // Mock teacher_id for now (replace with actual session logic later)
+    const teacher_id = 2; // Replace with actual logic when auth is implemented
+
+    const teacher = await prisma.user.findUnique({
+      where: { id: teacher_id },
+      select: { user_role: true },
     });
 
-    return new Response(JSON.stringify(newCourse), { status: 201 });
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with ID ${teacher_id} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with ID ${teacher_id} is not a TEACHER`,
+        }),
+        { status: 403 }
+      );
+    }
+
+    const existingCourse = await prisma.course.findUnique({
+      where: { id },
+    });
+
+    if (existingCourse) {
+      return new Response(
+        JSON.stringify({
+          message: `Course with ID ${id} already exists`,
+        }),
+        { status: 400 }
+      );
+    }
+
+    const [newCourse, adduser_course] = await prisma.$transaction([
+      prisma.course.create({
+        data: {
+          id,
+          course_name,
+          teacher_id,
+          total_student,
+          scan_time,
+        },
+      }),
+      prisma.user_course.create({
+        data: {
+          user_id: teacher_id, // Replace with actual user ID later
+          course_id: id,
+        },
+      }),
+    ]);
+
+    return new Response(
+      JSON.stringify({ newCourse, userCourse: adduser_course }),
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error adding course:", error);
     return new Response(
-      JSON.stringify({ message: "An error occurred while adding the course", error: "Internal Server Error" }),
+      JSON.stringify({
+        message: "An error occurred while adding the course",
+        error: error.message || "Internal Server Error",
+      }),
       { status: 500 }
     );
   }
