@@ -8,30 +8,29 @@ datasource db {
 }
 
 model user {
-  id        Int             @id @default(autoincrement())
-  user_name String
-  email     String          @unique(map: "User_email_key")
-  password  String
-  user_role user_user_role? @default(TEACHER)
-  user_courses user_course[]
+  id             Int             @id @default(autoincrement())
+  user_name      String
+  email          String          @unique(map: "User_email_key")
+  password       String
+  user_role      user_user_role? @default(TEACHER)
   uploaded_files file[]
-  sessions  session[]
+  sessions       session[]
+  user_courses   user_course[]
 }
 
-
 model user_course {
-  id        Int   @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   user_id   Int
   course_id String
-  user      user   @relation(fields: [user_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
-  course    course @relation(fields: [course_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
+  course    course @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  user      user   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([course_id])
 }
 
 model student {
-  id              String              @id
+  id              String           @id
   faculty         String           @db.VarChar(255)
   student_name    String           @db.VarChar(255)
   attendances     attendance[]
@@ -42,40 +41,38 @@ model course_student {
   id         Int     @id @default(autoincrement())
   course_id  String
   student_id String
-  course     course  @relation(fields: [course_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
-  student    student @relation(fields: [student_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
+  course     course  @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  student    student @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@index([course_id])
   @@index([student_id])
 }
 
 model course {
-  id              String              @id
+  id              String           @id
   course_name     String           @db.VarChar(255)
-  teacher_id      Int
   total_student   Int?
   scan_time       Int?
+  teacher_id      Int
   attendances     attendance[]
-  user_courses    user_course[]
   course_students course_student[]
   files           file[]
+  user_courses    user_course[]
 }
 
 model file {
-  id        Int      @id @default(autoincrement())
-  course_id String
-  uploaded_by Int
-  file_name String   @db.VarChar(255)
-  file_url  String   @db.VarChar(255)
+  id          Int      @id @default(autoincrement())
+  course_id   String
+  file_name   String   @db.VarChar(255)
+  file_url    String   @db.VarChar(255)
   uploaded_at DateTime @default(now())
-  
-  course    course   @relation(fields: [course_id], references: [id], onDelete: Cascade,onUpdate: Cascade) 
-  teacher     user     @relation(fields: [uploaded_by], references: [id], onDelete: Cascade,onUpdate: Cascade)
+  uploaded_by Int
+  course      course   @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  teacher     user     @relation(fields: [uploaded_by], references: [id], onDelete: Cascade)
 
   @@index([course_id])
   @@index([uploaded_by])
 }
-
 
 model attendance {
   id         Int               @id @default(autoincrement())
@@ -84,22 +81,21 @@ model attendance {
   date       DateTime?
   time       DateTime?
   status     attendance_status @default(PRESENT)
-  course     course            @relation(fields: [course_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
-  student    student           @relation(fields: [student_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
+  course     course            @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  student    student           @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@index([course_id])
   @@index([student_id])
 }
 
 model session {
-  id           Int      @id @default(autoincrement())
-  user_id      Int
+  id            Int      @id @default(autoincrement())
+  user_id       Int
   session_token String   @unique
-  expires      DateTime
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-  
-  user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
+  expires       DateTime
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  user          user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 enum attendance_status {
