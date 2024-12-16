@@ -80,7 +80,6 @@ model attendance {
   course_id  String
   date       DateTime?
   time       DateTime?
-  status     attendance_status @default(PRESENT)
   course     course            @relation(fields: [course_id], references: [id], onDelete: Cascade)
   student    student           @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
@@ -96,12 +95,6 @@ model session {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
   user          user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-}
-
-enum attendance_status {
-  PRESENT
-  ABSENT
-  LATE
 }
 
 enum user_user_role {
