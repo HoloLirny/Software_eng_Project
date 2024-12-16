@@ -75,13 +75,13 @@ model file {
 }
 
 model attendance {
-  id         Int               @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   student_id String
   course_id  String
   date       DateTime?
   time       DateTime?
-  course     course            @relation(fields: [course_id], references: [id], onDelete: Cascade)
-  student    student           @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  course     course    @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  student    student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@index([course_id])
   @@index([student_id])
