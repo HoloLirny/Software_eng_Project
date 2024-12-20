@@ -14,7 +14,6 @@ model user {
   password       String
   user_role      user_user_role? @default(TEACHER)
   uploaded_files file[]
-  sessions       session[]
   user_courses   user_course[]
 }
 
@@ -87,18 +86,9 @@ model attendance {
   @@index([student_id])
 }
 
-model session {
-  id            Int      @id @default(autoincrement())
-  user_id       Int
-  session_token String   @unique
-  expires       DateTime
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  user          user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-}
-
 enum user_user_role {
   ADMIN
   TEACHER
   TA
+  STUDENT
 }
