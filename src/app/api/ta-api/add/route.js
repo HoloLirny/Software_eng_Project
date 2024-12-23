@@ -9,15 +9,37 @@ export async function POST(req) {
         const existingEmailUser = await prisma.user.findUnique({
             where: { email },
         });
+
+        const existingCourse = await prisma.course.findUnique({
+            where: { id:course_id },
+        });
+    
+        if (!existingCourse) {
+            return new Response(
+                JSON.stringify({
+                message: `Course with ID ${course_id} already exists`,
+                }),
+                { status: 400 }
+            );
+        }
       
         if (existingEmailUser) {
-        return new Response(JSON.stringify({ error: 'Email is already registered.' }), { status: 400 });
+            const addToUserCourse = await prisma.user_course.create({
+            data: {
+                user_id: existingEmailUser.id, 
+                course_id: course_id,
+            },
+            });
+            return new Response(
+                JSON.stringify({ addToUserCourse }),
+                { status: 201 }
+            );
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Mock teacher_id for now (replace with actual session logic later)
-        const teacher_id = 2; // Replace with actual logic when auth is implemented
+        const teacher_id = 1; // Replace with actual logic when auth is implemented
 
         const teacher = await prisma.user.findUnique({
             where: { id: teacher_id },

@@ -64,8 +64,8 @@ model file {
   course_id   String
   file_name   String   @db.VarChar(255)
   file_url    String   @db.VarChar(255)
-  uploaded_at DateTime @default(now())
   uploaded_by Int
+  upload_at   DateTime @default(now())
   course      course   @relation(fields: [course_id], references: [id], onDelete: Cascade)
   teacher     user     @relation(fields: [uploaded_by], references: [id], onDelete: Cascade)
 
