@@ -4,10 +4,10 @@ import prisma from "../../../../../prisma/prisma";
 
 export async function POST(req) {
   try {
-    const { id, course_name, total_student, scan_time } = await req.json();
+    const { course_id, course_name, total_student, scan_time } = await req.json();
 
     // Validate required fields
-    if (!id || !course_name) {
+    if (!course_id || !course_name) {
       return new Response(
         JSON.stringify({
           message: "Course ID and course name are required",
@@ -43,13 +43,13 @@ export async function POST(req) {
     }
 
     const existingCourse = await prisma.course.findUnique({
-      where: { id },
+      where: { course_id },
     });
 
     if (existingCourse) {
       return new Response(
         JSON.stringify({
-          message: `Course with ID ${id} already exists`,
+          message: `Course with ID ${course_id} already exists`,
         }),
         { status: 400 }
       );
@@ -58,7 +58,7 @@ export async function POST(req) {
     const [newCourse, adduser_course] = await prisma.$transaction([
       prisma.course.create({
         data: {
-          id,
+          course_id,
           course_name,
           teacher_id,
           total_student,
@@ -68,7 +68,7 @@ export async function POST(req) {
       prisma.user_course.create({
         data: {
           user_id: teacher_id, // Replace with actual user ID later
-          course_id: id,
+          course_id: course_id,
         },
       }),
     ]);

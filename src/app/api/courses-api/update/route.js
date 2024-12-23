@@ -4,7 +4,7 @@ import prisma from "../../../../../prisma/prisma"; // Adjust the import path
 export async function PUT(req) {
   try {
     // Parse the JSON body to get the course data and ID
-    const { id, course_name, total_student, scan_time } = await req.json();
+    const { id, course_id, course_name, total_student, scan_time } = await req.json();
 
     // Validate that the required fields are provided
     if (!id) {
@@ -67,6 +67,8 @@ export async function PUT(req) {
           : existingCourse.total_student, // Allow null or undefined
       scan_time:
         scan_time !== undefined ? scan_time : existingCourse.total_student, // Allow null or undefined
+      course_id: 
+        course_id !== undefined ? course_id : existingCourse.course_id, 
     };
 
     // Update the course using Prisma's update method
