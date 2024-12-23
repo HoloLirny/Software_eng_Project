@@ -30,7 +30,7 @@ function Page() {
         name: `Course ${i + 1}`,
     })));
     const [changeOpen, setChangeOpen] = useState(false); // State for change dialog visibility
-
+    const [selectedCoursevalue, setSelectedCoursevalue] = useState('');
     const handleAddClick = () => {
         setAddOpen(true);
     };
@@ -42,10 +42,10 @@ function Page() {
         setEditOpen(true);
     };
 
-    const handleChangeClick = (course) => {
-        setSelectedCourse(course); // Store the selected course
-        setCourseId(course.id); // Populate course ID
-        setCourseName(course.name); // Populate course name
+    const handleChangeClick = () => {
+        setSelectedCourse(selectedCourse); // Store the selected course
+        setCourseId(selectedCourse.id); // Populate course ID
+        setCourseName(selectedCourse.name); // Populate course name
         setChangeOpen(true);
     };
 
@@ -58,12 +58,11 @@ function Page() {
 
     const handleChangeCourse = () => {
         const updatedCourses = courses.map(course => 
-            course.id === courseId ? { ...course, name: courseName } : course
+            course.id === courseId ? { ...course, name: courseName  } : course
         );
+
         setCourses(updatedCourses); // Update the course list
         setChangeOpen(false); // Close the dialog
-        setCourseId('');
-        setCourseName('');
     };
     
     const handleDeleteCourse = () => {
@@ -410,6 +409,7 @@ function Page() {
                     <TextField
                         fullWidth
                         value={courseId}
+                        onChange={(e) => setCourseId(e.target.value)}
                         sx={{
                             mb: 2,
                             '& .MuiInputBase-root': {
@@ -425,6 +425,7 @@ function Page() {
                     <TextField
                         fullWidth
                         value={courseName}
+                        onChange={(e) => setCourseName(e.target.value)}
                         sx={{
                             '& .MuiInputBase-root': {
                                 backgroundColor: '#EDEDED',
