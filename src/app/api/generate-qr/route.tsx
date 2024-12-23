@@ -5,18 +5,37 @@ interface Token {
 }
 let tokens: Record<string, Token> = {};
 
-// Main code
+// Generate a new token
 export async function GET(req: Request) {
   const token = uuidv4();
-  const expiresAt = Date.now() + 1 * 60 * 1000; // 5 minutes expiration
+  const expiresAt = Date.now() + 1 * 60 * 1000; // 10 seconds expiration
 
   tokens[token] = { expiresAt };
 
-  const url = `${process.env.NEXT_PUBLIC_BASE_URL}/attendance/${token}`;
+  const baseUrl = "http://localhost:3000/attendance";
+  const url = `${baseUrl}/${token}`; // for testing
 
   return new Response(JSON.stringify({ url, token }), {
     headers: { "Content-Type": "application/json" },
   });
+}
+
+// Validate token
+export async function POST(req: Request) {
+  const { token } = await req.json();
+  const record = tokens[token];
+  const now = Date.now();
+
+  if (record && now < record.expiresAt) {
+    return new Response(JSON.stringify({ valid: true }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } else {
+    return new Response(JSON.stringify({ valid: false }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }
 
 //static URL test
