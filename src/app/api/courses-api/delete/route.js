@@ -4,7 +4,7 @@ import prisma from "../../../../../prisma/prisma";
 export async function DELETE(req) {
   try {
     const body = await req.json();
-    const id = body.id;
+    const id = body.course_id;
 
     if (!id) {
       return NextResponse.json(
@@ -40,7 +40,7 @@ export async function DELETE(req) {
     }
 
     const existingCourse = await prisma.course.findUnique({
-      where: { id },
+      where: { course_id: id },
     });
 
     if (!existingCourse) {
@@ -54,7 +54,7 @@ export async function DELETE(req) {
     ///////////////////////////////////////////////////////
 
     const deletedCourse = await prisma.course.delete({
-      where: { id: id },
+      where: { course_id: id },
     });
 
     return NextResponse.json({

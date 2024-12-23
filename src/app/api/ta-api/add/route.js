@@ -11,7 +11,7 @@ export async function POST(req) {
         });
 
         const existingCourse = await prisma.course.findUnique({
-            where: { id:course_id },
+            where: { course_id },
         });
     
         if (!existingCourse) {
@@ -24,15 +24,21 @@ export async function POST(req) {
         }
       
         if (existingEmailUser) {
-            const addToUserCourse = await prisma.user_course.create({
-            data: {
-                user_id: existingEmailUser.id, 
-                course_id: course_id,
-            },
-            });
+            if(existingEmailUser.user_role == "TA"){
+                const addToUserCourse = await prisma.user_course.create({
+                    data: {
+                        user_id: existingEmailUser.id, 
+                        course_id: course_id,
+                    },
+                    });
+                    return new Response(
+                        JSON.stringify({ addToUserCourse }),
+                        { status: 201 }
+                    );
+            }
             return new Response(
-                JSON.stringify({ addToUserCourse }),
-                { status: 201 }
+                JSON.stringify({ message:  "User isn't the TA" }),
+                { status: 500 }
             );
         }
 

@@ -21,7 +21,7 @@ model user_course {
   id        Int    @id @default(autoincrement())
   user_id   Int
   course_id String
-  course    course @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  course    course @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
   user      user   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
@@ -29,9 +29,10 @@ model user_course {
 }
 
 model student {
-  id              String           @id
   faculty         String           @db.VarChar(255)
   student_name    String           @db.VarChar(255)
+  student_id      String           @unique
+  id              Int              @id @default(autoincrement())
   attendances     attendance[]
   course_students course_student[]
 }
@@ -40,19 +41,20 @@ model course_student {
   id         Int     @id @default(autoincrement())
   course_id  String
   student_id String
-  course     course  @relation(fields: [course_id], references: [id], onDelete: Cascade)
-  student    student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  course     course  @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
+  student    student @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
 
   @@index([course_id])
   @@index([student_id])
 }
 
 model course {
-  id              String           @id
   course_name     String           @db.VarChar(255)
   total_student   Int?
   scan_time       Int?
   teacher_id      Int
+  course_id       String           @unique
+  id              Int              @id @default(autoincrement())
   attendances     attendance[]
   course_students course_student[]
   files           file[]
@@ -66,7 +68,7 @@ model file {
   file_url    String   @db.VarChar(255)
   uploaded_by Int
   upload_at   DateTime @default(now())
-  course      course   @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  course      course   @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
   teacher     user     @relation(fields: [uploaded_by], references: [id], onDelete: Cascade)
 
   @@index([course_id])
@@ -79,8 +81,8 @@ model attendance {
   course_id  String
   date       DateTime?
   time       DateTime?
-  course     course    @relation(fields: [course_id], references: [id], onDelete: Cascade)
-  student    student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  course     course    @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
+  student    student   @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
 
   @@index([course_id])
   @@index([student_id])
