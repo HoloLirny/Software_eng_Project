@@ -1,16 +1,38 @@
+"use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { use } from "react";
 
-export default function Attendance() {
-  const router = useRouter();
-  const { token } = router.query;
+// Attendance page
+export default function Attendance({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
+  const { token } = use(params);
   const [status, setStatus] = useState<string>("Validating...");
 
   useEffect(() => {
-    if (token && typeof token === "string") {
-      // Handle the token validation logic here.
-      // For example, check the token expiration, etc.
-      setStatus("Attendance Marked Successfully");
+    if (token) {
+      fetch("/api/generate-qr", {
+        method: "POST",
+        body: JSON.stringify({ token }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.valid) {
+            setStatus("Attendance Marked Successfully");
+          } else {
+            setStatus("Token Expired. Please scan a new QR code.");
+          }
+        })
+        .catch(() => {
+          setStatus("Invalid Token");
+        });
+    } else {
+      setStatus("Invalid Token");
     }
   }, [token]);
 
