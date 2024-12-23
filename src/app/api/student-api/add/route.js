@@ -5,7 +5,7 @@ import prisma from "../../../../../prisma/prisma";
 export async function POST(req) {
     try{
         const { course_id, id, faculty, student_name } = await req.json();
-        const existingIDUser = await prisma.student.findUnique({
+        const existingIDStudent = await prisma.student.findUnique({
             where: { id },
         });
 
@@ -13,7 +13,7 @@ export async function POST(req) {
             where: { id: course_id },
         });
       
-        if (existingIDUser) {
+        if (existingIDStudent) {
             return new Response(JSON.stringify({ error: 'student with this ID is already added.' }), { status: 400 });
         }
         if (!existingCourse) {
@@ -21,7 +21,7 @@ export async function POST(req) {
         }
 
         // Mock teacher_id for now (replace with actual session logic later)
-        const teacher_id = 2; // Replace with actual logic when auth is implemented
+        const teacher_id = 1; // Replace with actual logic when auth is implemented
 
         const teacher = await prisma.user.findUnique({
             where: { id: teacher_id },
