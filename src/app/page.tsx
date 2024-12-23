@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 export default function Home() {
   const [qrCode, setQrCode] = useState<string>("");
   const [token, setToken] = useState<string>("");
+  const [url, setUrl] = useState<string>("");
   const [intervalTime, setIntervalTime] = useState<number>(300); // Default 5 min (300 sec)
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
 
@@ -14,6 +15,7 @@ export default function Home() {
     const res = await fetch("/api/generate-qr");
     const data: { url: string; token: string } = await res.json();
     setToken(data.token);
+    setUrl(data.url);
 
     const qr = await QRCode.toDataURL(data.url);
     setQrCode(qr);
@@ -48,7 +50,14 @@ export default function Home() {
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>Class Attendance QR Code</h1>
 
-      {qrCode && <img src={qrCode} alt="QR Code" />}
+      <div
+        className="d-flex, justify-content:center"
+        style={{ textAlign: "center", marginTop: "50px" }}
+      >
+        {qrCode && <img src={qrCode} alt="QR Code" />}
+      </div>
+
+      <p>URL: {url}</p>
 
       <p>Token: {token}</p>
 
