@@ -1,10 +1,13 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "../../../../../prisma/prisma";
+import GoogleProvider from "next-auth/providers/google";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 
-export const handler = NextAuth({
+const prisma = new PrismaClient();
+
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -12,30 +15,38 @@ export const handler = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        try {
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
-          });
+      async authorize(credentials, req) {
+        if (!credentials) return null;
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
 
-          if (!user) {
-            throw new Error("No user found with the provided email.");
-          }
-
-          const isPasswordValid = bcrypt.compareSync(
-            credentials.password,
-            user.password
-          );
-
-          if (!isPasswordValid) {
-            throw new Error("Invalid password.");
-          }
-
-          return user;
-        } catch (error) {
-          console.error("Authorize error:", error.message);
-          return null;
+        if (
+          user &&
+          (await bcrypt.compare(credentials.password, user.password))
+        ) {
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.user_role,
+            image: user.image,
+          };
+        } else {
+          throw new Error("Invalid email or password");
         }
+      },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      async profile(profile) {
+        return {
+          id: profile.sub,
+          name: `${profile.given_name} ${profile.family_name}`,
+          email: profile.email,
+          image: profile.picture,
+        };
       },
     }),
   ],
@@ -44,26 +55,27 @@ export const handler = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    jwt: async ({ token, user }) => {
       if (user) {
         token.id = user.id;
-        token.user_name = user.user_name;
-        token.email = user.email;
-        token.role = user.user_role; 
+        token.role = user.role;
       }
       return token;
     },
-    async session({ session, token }) {
-      session.user = {
-        id: token.id,
-        user_name: token.user_name,
-        email: token.email,
-        role: token.role, 
-      };
+    session: async ({ session, token }) => {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.image = token.picture;
+      }
       return session;
     },
+    async redirect({ baseUrl }) {
+      return `${baseUrl}/login/profile`;
+    },
   },
-  secret: process.env.NEXTAUTH_SECRET,
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

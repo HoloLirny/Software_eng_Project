@@ -9,13 +9,48 @@ datasource db {
 
 model user {
   id        Int             @id @default(autoincrement())
-  user_name String
+  name    String?
   email     String          @unique(map: "User_email_key")
-  password  String
+  password  String?
+  image     String?
   user_role user_user_role? @default(TEACHER)
   user_courses user_course[]
   uploaded_files file[]
   sessions  session[]
+  emailVerified DateTime?
+  accounts      Account[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model session {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  session_token String   @unique
+  expires      DateTime
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  
+  user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             Int
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
 }
 
 
@@ -89,17 +124,6 @@ model attendance {
 
   @@index([course_id])
   @@index([student_id])
-}
-
-model session {
-  id           Int      @id @default(autoincrement())
-  user_id      Int
-  session_token String   @unique
-  expires      DateTime
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-  
-  user         user     @relation(fields: [user_id], references: [id], onDelete: Cascade,onUpdate: Cascade)
 }
 
 enum attendance_status {

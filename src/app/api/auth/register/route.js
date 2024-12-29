@@ -1,11 +1,11 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
 export async function POST(req) {
   try {
-    const { user_name, email, password, user_role } = await req.json();
+    const { name, email, password, user_role } = await req.json();
 
     // Check if the user already exists by email
     const existingEmailUser = await prisma.user.findUnique({
@@ -13,7 +13,10 @@ export async function POST(req) {
     });
 
     if (existingEmailUser) {
-      return new Response(JSON.stringify({ error: 'Email is already registered.' }), { status: 400 });
+      return new Response(
+        JSON.stringify({ error: "Email is already registered." }),
+        { status: 400 }
+      );
     }
 
     // Hash the password
@@ -22,18 +25,29 @@ export async function POST(req) {
     // Create the new user
     const newUser = await prisma.user.create({
       data: {
-        user_name,
+        name,
         email,
         password: hashedPassword,
-        user_role: user_role || 'TEACHER', 
+        user_role: user_role || "TEACHER",
       },
     });
 
-    return new Response(JSON.stringify({ message: 'User registered successfully.', user: newUser }), {
-      status: 201,
-    });
+    return new Response(
+      JSON.stringify({
+        message: "User registered successfully.",
+        user: newUser,
+      }),
+      {
+        status: 201,
+      }
+    );
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ error: 'Internal server error.' }), { status: 500 });
+    return new Response(
+      JSON.stringify({ error: "User could not be created." }),
+      {
+        status: 500,
+      }
+    );
   }
 }
