@@ -14,33 +14,6 @@ export async function PUT(req) {
       );
     }
 
-    /////////////////////////////////////////////////
-    // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
-
-    const teacher = await prisma.user.findUnique({
-      where: { id: teacher_id },
-      select: { user_role: true },
-    });
-
-    if (!teacher) {
-      return new Response(
-        JSON.stringify({
-          message: `User with ID ${teacher_id} not found`,
-        }),
-        { status: 404 }
-      );
-    }
-
-    if (teacher.user_role !== "TEACHER") {
-      return new Response(
-        JSON.stringify({
-          message: `User with ID ${teacher_id} is not a TEACHER`,
-        }),
-        { status: 403 }
-      );
-    }
-
     const existingStudent = await prisma.student.findUnique({
       where: { id },
     });
@@ -53,7 +26,6 @@ export async function PUT(req) {
         { status: 404 }
       );
     }
-    /////////////////////////////////////////////////
 
     // Prepare the data to be updated, ensuring null values are allowed
     const updateData = {
