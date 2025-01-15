@@ -16,26 +16,26 @@ export async function PUT(req) {
 
     /////////////////////////////////////////////////
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
+    const user_id = 1; // Replace with actual logic when auth is implemented
 
     const teacher = await prisma.user.findUnique({
-      where: { id: teacher_id },
+      where: { id: user_id },
       select: { user_role: true },
     });
 
     if (!teacher) {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} not found`,
+          message: `User with ID ${user_id} not found`,
         }),
         { status: 404 }
       );
     }
 
-    if (teacher.user_role !== "TEACHER") {
+    if (teacher.user_role !== "TEACHER" || teacher.user_role !== "TA") {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} is not a TEACHER`,
+          message: `User with ID ${user_id} is not a TEACHER or TA`,
         }),
         { status: 403 }
       );
@@ -58,15 +58,15 @@ export async function PUT(req) {
     // Prepare the data to be updated, ensuring null values are allowed
     const updateData = {
       course_name:
-        course_name !== undefined ? course_name : existingCourse.course_name, // Allow null or undefined
+        course_name !== undefined ? course_name : existingCourse.course_name, 
       teacher_id:
-        teacher_id !== undefined ? teacher_id : existingCourse.teacher_id, // Allow null or undefined
+        user_id !== undefined ? user_id : existingCourse.id, 
       total_student:
         total_student !== undefined
           ? total_student
-          : existingCourse.total_student, // Allow null or undefined
+          : existingCourse.total_student, 
       scan_time:
-        scan_time !== undefined ? scan_time : existingCourse.total_student, // Allow null or undefined
+        scan_time !== undefined ? scan_time : existingCourse.total_student, 
       course_id: 
         course_id !== undefined ? course_id : existingCourse.course_id, 
     };
