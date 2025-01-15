@@ -34,19 +34,19 @@ model student {
   student_id      String           @unique
   id              Int              @id @default(autoincrement())
   attendances     attendance[]
-  course_students course_student[]
+  // course_students course_student[]
 }
 
-model course_student {
-  id         Int     @id @default(autoincrement())
-  course_id  String
-  student_id String
-  course     course  @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
-  student    student @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+// model course_student {
+//   id         Int     @id @default(autoincrement())
+//   course_id  String
+//   student_id String
+//   course     course  @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
+//   student    student @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
 
-  @@index([course_id])
-  @@index([student_id])
-}
+//   @@index([course_id])
+//   @@index([student_id])
+// }
 
 model course {
   course_name     String           @db.VarChar(255)
@@ -56,7 +56,7 @@ model course {
   course_id       String           @unique
   id              Int              @id @default(autoincrement())
   attendances     attendance[]
-  course_students course_student[]
+  // course_students course_student[]
   files           file[]
   user_courses    user_course[]
 }

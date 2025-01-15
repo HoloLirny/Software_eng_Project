@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../prisma/prisma";
-import fs from "fs";
-import path from "path";
-
-// http://localhost:3000/api/courses-api/delete?course_id=001001
+// http://localhost:3000/api/student-api/delete?student_id=650610747
 export async function DELETE(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("course_id");
+    const id = searchParams.get("student_id");
 
     if (!id) {
       return NextResponse.json(
-        { error: "Course ID is required" },
+        { error: "Student ID is required" },
         { status: 400 }
       );
     }
-
+    ///////////////////////////////////////////////////////
     // Mock teacher_id for now (replace with actual session logic later)
     const teacher_id = 1; // Replace with actual logic when auth is implemented
 
@@ -42,45 +39,32 @@ export async function DELETE(req) {
       );
     }
 
-    const existingCourse = await prisma.course.findUnique({
-      where: { course_id: id },
+    const existingStudent = await prisma.student.findUnique({
+      where: { student_id: id },
     });
 
-    if (!existingCourse) {
+    if (!existingStudent) {
       return new Response(
         JSON.stringify({
-          message: `Course with course_id ${id} doesn't exist`,
+          message: `Student with student_id ${id} isn't exists`,
         }),
         { status: 404 }
       );
     }
+    ///////////////////////////////////////////////////////
 
-    // Fetch associated files
-    const files = await prisma.file.findMany({
-      where: { course_id: id },
-    });
-
-    // Delete physical files
-    files.forEach((file) => {
-      const filePath = path.join(process.cwd(), "public/uploads", file.file_name);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath); // Delete the file
-      }
-    });
-
-    // Delete the course (cascades to related records in the database)
-    const deletedCourse = await prisma.course.delete({
-      where: { course_id: id },
+    const deleeteStudent = await prisma.student.delete({
+      where: { student_id: id },
     });
 
     return NextResponse.json({
-      message: "Course and related data deleted successfully",
-      deletedCourse,
+      message: "Student and related data deleted successfully",
+      deleeteStudent,
     });
   } catch (error) {
-    console.error("Error deleting course:", error);
+    console.error("Error deleting student:", error);
     return NextResponse.json(
-      { error: "Error deleting course" },
+      { error: "Error deleting student" },
       { status: 500 }
     );
   }

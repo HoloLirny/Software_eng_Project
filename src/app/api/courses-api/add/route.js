@@ -1,7 +1,7 @@
 import prisma from "../../../../../prisma/prisma";
 // Thing left to do
 // connect with auth that link id of logined user 
-
+// http://localhost:3000/api/courses-api/add
 export async function POST(req) {
   try {
     const { course_id, course_name, total_student, scan_time } = await req.json();
@@ -74,7 +74,11 @@ export async function POST(req) {
     ]);
 
     return new Response(
-      JSON.stringify({ newCourse, userCourse: adduser_course }),
+      JSON.stringify({
+        message: "Course and related data added successfully",
+        newCourse,
+        userCourse: adduser_course
+      }),
       { status: 201 }
     );
   } catch (error) {
