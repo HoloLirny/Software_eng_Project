@@ -17,6 +17,7 @@ import Grid from '@mui/material/Grid2';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CloseIcon from '@mui/icons-material/Close';
 import Swal from 'sweetalert2'
+import '@fontsource/prompt';
 
 function Page() {
     const Swal = require('sweetalert2')

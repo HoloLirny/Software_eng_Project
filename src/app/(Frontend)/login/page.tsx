@@ -1,6 +1,7 @@
 import { Box, Button, Card, Container, TextField, Typography } from '@mui/material'
 import React from 'react'
 import Grid from '@mui/material/Grid2'
+import '@fontsource/prompt'; 
 
 function page() {
   return (
