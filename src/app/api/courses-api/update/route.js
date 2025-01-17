@@ -4,7 +4,7 @@ import prisma from "../../../../../prisma/prisma";
 export async function PUT(req) {
   try {
     // Parse the JSON body to get the course data and ID
-    const { id, course_id, course_name, total_student, scan_time } = await req.json();
+    const { id, course_id, course_name, total_student, scan_time, teacher_id } = await req.json();
 
     // Validate that the required fields are provided
     if (!id) {
@@ -32,7 +32,7 @@ export async function PUT(req) {
       );
     }
 
-    if (teacher.user_role !== "TEACHER" || teacher.user_role !== "TA") {
+    if (teacher.user_role !== "TEACHER" && teacher.user_role !== "TA") {
       return new Response(
         JSON.stringify({
           message: `User with ID ${user_id} is not a TEACHER or TA`,
@@ -60,7 +60,7 @@ export async function PUT(req) {
       course_name:
         course_name !== undefined ? course_name : existingCourse.course_name, 
       teacher_id:
-        user_id !== undefined ? user_id : existingCourse.id, 
+        teacher_id !== undefined ? teacher_id : existingCourse.teacher_id, 
       total_student:
         total_student !== undefined
           ? total_student
