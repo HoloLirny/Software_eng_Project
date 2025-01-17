@@ -25,11 +25,11 @@ export async function GET(request) {
             user: true, // Include user details for the user_course
             },
         },
-        course_students: {
-            include: {
-            student: true, // Include student details for the course_student
-            },
-        },
+        // course_students: {
+        //     include: {
+        //     student: true, // Include student details for the course_student
+        //     },
+        // },
         files: true, // Include files related to the course
         attendances: true, // Include attendances related to the course
         },
