@@ -17,7 +17,7 @@ export async function DELETE(req) {
     }
 
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
+    const teacher_id = 5; // Replace with actual logic when auth is implemented
 
     const teacher = await prisma.user.findUnique({
       where: { id: teacher_id },
@@ -41,7 +41,7 @@ export async function DELETE(req) {
         { status: 403 }
       );
     }
-
+    ///////////////////////////////////////////////////////
     const existingCourse = await prisma.course.findUnique({
       where: { course_id: id },
     });
@@ -64,7 +64,7 @@ export async function DELETE(req) {
     files.forEach((file) => {
       const filePath = path.join(process.cwd(), "public/uploads", file.file_name);
       if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath); // Delete the file
+        fs.unlinkSync(filePath); 
       }
     });
 

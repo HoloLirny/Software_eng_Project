@@ -5,7 +5,7 @@ export async function POST(req) {
     const { student_id, faculty, student_name } = await req.json();
 
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; 
+    const teacher_id = 5; 
 
     const teacher = await prisma.user.findUnique({
         where: { id: teacher_id },

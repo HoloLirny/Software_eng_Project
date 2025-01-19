@@ -25,7 +25,7 @@ export async function DELETE(req) {
 
     if (!file) {
       return NextResponse.json(
-        { error: `File with name ${fileName} does not exist` },
+        { error: `File with name ${fileName} does not exist in ${courseId}` },
         { status: 404 }
       );
     }

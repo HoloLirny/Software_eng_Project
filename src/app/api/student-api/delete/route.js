@@ -14,7 +14,7 @@ export async function DELETE(req) {
     }
     ///////////////////////////////////////////////////////
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
+    const teacher_id = 5; // Replace with actual logic when auth is implemented
 
     const teacher = await prisma.user.findUnique({
       where: { id: teacher_id },
@@ -38,7 +38,7 @@ export async function DELETE(req) {
         { status: 403 }
       );
     }
-
+    ///////////////////////////////////////////////////////
     const existingStudent = await prisma.student.findUnique({
       where: { student_id: id },
     });
@@ -51,8 +51,7 @@ export async function DELETE(req) {
         { status: 404 }
       );
     }
-    ///////////////////////////////////////////////////////
-
+ 
     const deleeteStudent = await prisma.student.delete({
       where: { student_id: id },
     });

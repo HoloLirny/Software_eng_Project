@@ -5,7 +5,6 @@ import prisma from "../../../../../../prisma/prisma";
 
 export async function GET(request) {
   try {
-    // Extract student_id from the query parameters
     const { searchParams } = new URL(request.url);
     const student_id = searchParams.get("student_id");
 
@@ -16,11 +15,10 @@ export async function GET(request) {
       );
     }
 
-    // Fetch course information by course_id
     const student = await prisma.student.findUnique({
-        where: { student_id: student_id }, // Specify the course_id condition
+        where: { student_id: student_id }, 
         include: {
-        attendances: true, // Include attendances related to the course
+        attendances: true, 
         },
     });
   
@@ -32,7 +30,6 @@ export async function GET(request) {
       );
     }
 
-    // Return a JSON response with the fetched course
     return NextResponse.json(student);
   } catch (error) {
     console.error("Error fetching student:", error);
