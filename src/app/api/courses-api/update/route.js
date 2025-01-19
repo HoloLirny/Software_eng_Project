@@ -16,7 +16,7 @@ export async function PUT(req) {
 
     /////////////////////////////////////////////////
     // Mock teacher_id for now (replace with actual session logic later)
-    const user_id = 1; // Replace with actual logic when auth is implemented
+    const user_id = 5; // Replace with actual logic when auth is implemented
 
     const teacher = await prisma.user.findUnique({
       where: { id: user_id },
@@ -40,7 +40,7 @@ export async function PUT(req) {
         { status: 403 }
       );
     }
-
+    /////////////////////////////////////////////////
     const existingCourse = await prisma.course.findUnique({
       where: { id },
     });
@@ -53,7 +53,6 @@ export async function PUT(req) {
         { status: 404 }
       );
     }
-    /////////////////////////////////////////////////
 
     // Prepare the data to be updated, ensuring null values are allowed
     const updateData = {
@@ -73,7 +72,7 @@ export async function PUT(req) {
 
     // Update the course using Prisma's update method
     const updatedCourse = await prisma.course.update({
-      where: { id }, // Identify the course to update by ID
+      where: { id }, 
       data: updateData,
     });
 
