@@ -126,8 +126,8 @@ function Page() {
         }).then(async (result) => {
           if (result.isConfirmed) {
             try {
-              // Make DELETE request to the backend
-              const response = await fetch(
+              // Make DELETE request to the backendสสส
+              const response = await fetch(   
                 `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/delete?course_id=${courseId}`,
                 {
                   method: "DELETE",
