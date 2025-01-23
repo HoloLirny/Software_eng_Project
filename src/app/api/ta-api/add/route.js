@@ -13,7 +13,7 @@ export async function POST(req) {
         const existingCourse = await prisma.course.findUnique({
             where: { course_id },
         });
-    
+
         if (!existingCourse) {
             return new Response(
                 JSON.stringify({
@@ -22,30 +22,10 @@ export async function POST(req) {
                 { status: 400 }
             );
         }
-      
-        if (existingEmailUser) {
-            if(existingEmailUser.user_role == "TA"){
-                const addToUserCourse = await prisma.user_course.create({
-                    data: {
-                        user_id: existingEmailUser.id, 
-                        course_id: course_id,
-                    },
-                    });
-                    return new Response(
-                        JSON.stringify({ addToUserCourse }),
-                        { status: 201 }
-                    );
-            }
-            return new Response(
-                JSON.stringify({ message:  "User isn't the TA" }),
-                { status: 500 }
-            );
-        }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
+        ///////////////////////////////////////////////////
         // Mock teacher_id for now (replace with actual session logic later)
-        const teacher_id = 1; // Replace with actual logic when auth is implemented
+        const teacher_id = 5; // Replace with actual logic when auth is implemented
 
         const teacher = await prisma.user.findUnique({
             where: { id: teacher_id },
@@ -69,6 +49,38 @@ export async function POST(req) {
                 { status: 403 }
             );
         }
+        ///////////////////////////////////////////////////
+
+        if (existingEmailUser) {
+            const existInUser_course = await prisma.user_course.findFirst({
+                where: { user_id:existingEmailUser.id, course_id:course_id },
+            });
+    
+            if(existInUser_course){
+                return new Response(
+                    JSON.stringify({ message:  "This TA already in the course" }),
+                    { status: 500 }
+                );
+            }
+            if(existingEmailUser.user_role == "TA"){
+                const addToUserCourse = await prisma.user_course.create({
+                    data: {
+                        user_id: existingEmailUser.id, 
+                        course_id: course_id,
+                    },
+                    });
+                    return new Response(
+                        JSON.stringify({ addToUserCourse }),
+                        { status: 201 }
+                    );
+            }
+            return new Response(
+                JSON.stringify({ message:  "User isn't the TA" }),
+                { status: 500 }
+            );
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         const newTA = await prisma.user.create({
             data: {

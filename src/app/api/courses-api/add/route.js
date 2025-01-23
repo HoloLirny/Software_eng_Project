@@ -1,7 +1,7 @@
 import prisma from "../../../../../prisma/prisma";
 // Thing left to do
 // connect with auth that link id of logined user 
-
+// http://localhost:3000/api/courses-api/add
 export async function POST(req) {
   try {
     const { course_id, course_name, total_student, scan_time } = await req.json();
@@ -15,9 +15,9 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-
+    ///////////////////////////////////////////////////////
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
+    const teacher_id = 5; // Replace with actual logic when auth is implemented
 
     const teacher = await prisma.user.findUnique({
       where: { id: teacher_id },
@@ -41,7 +41,7 @@ export async function POST(req) {
         { status: 403 }
       );
     }
-
+    ///////////////////////////////////////////////////////
     const existingCourse = await prisma.course.findUnique({
       where: { course_id },
     });
@@ -74,7 +74,11 @@ export async function POST(req) {
     ]);
 
     return new Response(
-      JSON.stringify({ newCourse, userCourse: adduser_course }),
+      JSON.stringify({
+        message: "Course and related data added successfully",
+        newCourse,
+        userCourse: adduser_course
+      }),
       { status: 201 }
     );
   } catch (error) {
