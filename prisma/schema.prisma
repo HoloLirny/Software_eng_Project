@@ -9,12 +9,12 @@ datasource db {
 
 model user {
   id             Int             @id @default(autoincrement())
-  user_name      String
   email          String          @unique(map: "User_email_key")
   password       String
   user_role      user_user_role? @default(TEACHER)
   uploaded_files file[]
   user_courses   user_course[]
+  attendance attendance[]
 }
 
 model user_course {
@@ -38,7 +38,6 @@ model student {
 
 model course {
   course_name     String           @db.VarChar(255)
-  total_student   Int?
   scan_time       Int?
   teacher_id      Int
   course_id       String           @unique
@@ -66,8 +65,10 @@ model attendance {
   id         Int       @id @default(autoincrement())
   student_id String
   course_id  String
+  user_id   Int
   date       DateTime?
   time       DateTime?
+  user      user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   course     course    @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
   student    student   @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
 
