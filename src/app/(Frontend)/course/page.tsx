@@ -20,32 +20,37 @@ import Swal from 'sweetalert2'
 import '@fontsource/prompt';
 import axios from 'axios';
 
+interface Course {
+    course_id : number;
+    course_name : string;
+    id : number;
+    scan_time : string;
+    teacher_id : number;
+    total_student : number;
+}
+
 function Page() {
     const Swal = require('sweetalert2')
     const [addOpen, setAddOpen] = useState(false); // State for dialog visibility
     const [editOpen,setEditOpen] = useState(false); // State for
-    const [selectedCourse, setSelectedCourse] = useState(null);
+    const [selectedCourse, setSelectedCourse] = useState<Course>("");
     const [courseId, setCourseId] = useState<string>(''); // State for course ID
     const [courseName, setCourseName] = useState<string>(''); // State for course Name
-    const [courses, setCourses] = useState([]);
-    const [error, setError] = useState({ courseId: '', courseName: '' });
+    const [courses, setCourses] = useState<Course>([]);
     const [changeOpen, setChangeOpen] = useState(false); // State for change dialog visibility
-    const [selectedCoursevalue, setSelectedCoursevalue] = useState('');
+    const [error, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const handleAddClick = () => {
         setAddOpen(true);
     };
 
     const handleEditClick = (course) => {
         setSelectedCourse(course); // Store the selected course
-        setCourseId(course.id); // Populate course ID
-        setCourseName(course.name); // Populate course name
+        console.log("this is ",selectedCourse);
         setEditOpen(true);
     };
 
     const handleChangeClick = () => {
-        setSelectedCourse(selectedCourse); // Store the selected course
-        setCourseId(selectedCourse.id); // Populate course ID
-        setCourseName(selectedCourse.name); // Populate course name
         setChangeOpen(true);
     };
 
@@ -54,6 +59,30 @@ function Page() {
         setEditOpen(false);
         setCourseId('');
         setCourseName('');
+    };
+
+    const handleInputChange = (e) => {
+        const input = e.target.value;
+
+        // Allow only numeric input
+        if (/^\d*$/.test(input)) {
+            setSelectedCourse((prev) => ({
+                ...prev,
+                course_id: input,
+            }));
+
+            // Check if the input is exactly 6 digits
+            if (input.length === 6) {
+                setError(false);
+                setErrorMessage('');
+            } else {
+                setError(true);
+                setErrorMessage('The ID must be exactly 6 digits.');
+            }
+        } else {
+            setError(true);
+            setErrorMessage('Only numeric values are allowed.');
+        }
     };
 
     const handleChangeCourse = async () => {
@@ -67,12 +96,9 @@ function Page() {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                id: 2,
-                course_name: courseName, // Include only fields you want to update
-                course_id: courseId,
-                total_student: 100,
-                scan_time:10,
-                
+                course_name: selectedCourse.course_name, // Include only fields you want to update
+                course_id: selectedCourse.course_id,    
+                id: selectedCourse.id,       
             }),
             }
           );
@@ -107,6 +133,7 @@ function Page() {
           });
         } finally {
           setChangeOpen(false); // Close the dialog
+          setEditOpen(false);
           setCourseId(""); // Reset course ID
           setCourseName(""); // Reset course name
         }
@@ -128,7 +155,7 @@ function Page() {
             try {
               // Make DELETE request to the backendสสส
               const response = await fetch(   
-                `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/delete?course_id=${courseId}`,
+                `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/delete?course_id=${selectedCourse.course_id}`,
                 {
                   method: "DELETE",
                 }
@@ -137,18 +164,15 @@ function Page() {
               if (!response.ok) {
                 throw new Error("Failed to delete the course");
               }
-      
+             
               const data = await response.json();
-              console.log("Delete response:", data);
-      
-              // Remove the deleted course from the courses state
-              const updatedCourses = courses.filter((course) => course.id !== courseId);
-              setCourses(updatedCourses);
-      
+              setSelectedCourse("");
+              setCourseId("");
+              setCourseName("");
               // Show success message
               Swal.fire({
                 title: "Deleted!",
-                text: courseName + " has been deleted.",
+                text: selectedCourse.course_name + " has been deleted.",
                 icon: "success",
               });
             } catch (error) {
@@ -164,8 +188,7 @@ function Page() {
       
         // Close the dialog and reset state
         setEditOpen(false);
-        setCourseId("");
-        setCourseName("");
+      
       };
       
 
@@ -191,58 +214,64 @@ function Page() {
       };
 
     const handleAddCourse = async () => {
-
-        const newCourse = {
-            id: courseId,
-            name: courseName,
-        };
-        const addCourse = {
-          course_id: courseId,
-          course_name: courseName,
-          total_student: 500,
-          scan_time: 10,
-        };
-    
-        console.log("Payload sent to API:", addCourse); // Log payload for debugging
-    
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/courses-api/add`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(addCourse),
-            });
-    
-            console.log("Response status:", response.status);
-            console.log("Response object:", response);
-    
-            if (!response.ok) {
-                const errorData = await response.text(); // Capture the error response
-                console.error("Error details from server:", errorData);
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-    
-            const data = await response.json();
-            console.log("Response data:", data);
+        if (error.courseId || error.courseName) {
             Swal.fire({
-                title: "Successfull",
-                text: `Course ${courseId} has been added`, 
-                icon: "success",
+                title: "Please check your input",
+                text: `please fill all the field`, 
+                icon: "error",
                 timer: 1500
-              });
+            });
+        }else{
+            const newCourse = {
+                id: courseId,
+                name: courseName,
+            };
+            const addCourse = {
+            course_id: courseId,
+            course_name: courseName,
+            };
     
-            setCourses((prevCourses) => [...prevCourses, addCourse]);
-            setAddOpen(false);
-            setCourseId("");
-            setCourseName("");
-        } catch (error) {
-            console.error("Error in frontend request:", error);
+        // console.log("Payload sent to API:", addCourse); // Log payload for debugging
+    
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/courses-api/add`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(addCourse),
+                });
+        
+                console.log("Response status:", response.status);
+                console.log("Response object:", response);
+        
+                if (!response.ok) {
+                    const errorData = await response.text(); // Capture the error response
+                    console.error("Error details from server:", errorData);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+        
+                const data = await response.json();
+                console.log("Response data:", data);
+                Swal.fire({
+                    title: "Successfull",
+                    text: `Course ${courseId} has been added`, 
+                    icon: "success",
+                    timer: 1500
+                });
+        
+                setCourses((prevCourses) => [...prevCourses, newCourse]);
+                setAddOpen(false);
+                setCourseId("");
+                setCourseName("");
+            } catch (error) {
+                console.error("Error in frontend request:", error);
+            }
+
+
+            setCourses([...courses, newCourse]); // Add new course to the array
+            setAddOpen(false); // Close dialog after adding
+            setCourseId(''); // Reset fields
+            setCourseName('');
         }
-
-
-        setCourses([...courses, newCourse]); // Add new course to the array
-        setAddOpen(false); // Close dialog after adding
-        setCourseId(''); // Reset fields
-        setCourseName('');
     };
 
     useEffect(() => {
@@ -251,18 +280,15 @@ function Page() {
             const result = await axios.get(
               `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/get/get_all_course`
             );
-            
-            setCourses(result.data.map(course => ({
-              id: course.course_id,
-              name: course.course_name,
-            })));
+            console.log(result.data);
+            setCourses(result.data);
           } catch (error) {
             console.error("Error fetching courses:", error);
           }
         };
         
         fetchCourses(); // Call the async function
-      }, []);
+      }, [changeOpen,editOpen,addOpen,selectedCourse]);
       
 
     return (
@@ -323,6 +349,7 @@ function Page() {
                 {/* Display courses */}
                 <Grid container spacing={2}>
                     {courses.map((course, index) => (
+                        
                         <Grid size={{xs:12,md:6}} key={index}>
                             <Card
                                 sx={{
@@ -341,7 +368,7 @@ function Page() {
                                                 fontWeight: 'bold',
                                             }}
                                         >
-                                            CourseID : <span style={{ color: '#BF48DD' }}>{course.id}</span>
+                                            CourseID : <span style={{ color: '#BF48DD' }}>{course.course_id}</span>
                                         </Typography>
                                         <Typography
                                             variant="h6"
@@ -351,7 +378,7 @@ function Page() {
                                                 color: 'black', // Set the color to black for Course Name
                                             }}
                                         >
-                                            Course Name : <span style={{ color: '#BF48DD' }}>{course.name}</span>
+                                            Course Name : <span style={{ color: '#BF48DD' }}>{course.course_name}</span>
                                         </Typography>
                                     </Grid>
                                     <Grid size={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -406,31 +433,45 @@ function Page() {
                     fullWidth
                     value={courseId}
                     onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^\d*$/.test(value)) {
-                        setCourseId(value);
-                        setError((prev) => ({ ...prev, courseId: '' }));
-                    } else {
-                        setError((prev) => ({ ...prev, courseId: 'Course ID must be a number' }));
-                    }
+                        const value = e.target.value;
+                        // Allow input only if it is numeric and up to 6 digits
+                        if (/^\d*$/.test(value)) {
+                            setCourseId(value);
+
+                            // Check if it's exactly 6 digits
+                            if (value.length === 6) {
+                                setError((prev) => ({ ...prev, courseId: '' }));
+                            } else {
+                                setError((prev) => ({
+                                    ...prev,
+                                    courseId: 'Course ID must be exactly 6 digits',
+                                }));
+                            }
+                        } else {
+                            setError((prev) => ({
+                                ...prev,
+                                courseId: 'Course ID must be numeric',
+                            }));
+                        }
                     }}
                     error={!!error.courseId}
                     helperText={error.courseId}
                     sx={{
-                    mb: 2,
-                    '& .MuiInputBase-root': {
-                        backgroundColor: '#EDEDED',
-                        borderRadius: 4,
-                        border: '1px solid #D9D9D9',
-                    },
-                    '& .MuiInputLabel-root': {
-                        fontFamily: 'Prompt',
-                    },
-                    '& .MuiInputBase-input': {
-                        fontFamily: 'Prompt',
-                    },
+                        mb: 2,
+                        '& .MuiInputBase-root': {
+                            backgroundColor: '#EDEDED',
+                            borderRadius: 4,
+                            border: '1px solid #D9D9D9',
+                        },
+                        '& .MuiInputLabel-root': {
+                            fontFamily: 'Prompt',
+                        },
+                        '& .MuiInputBase-input': {
+                            fontFamily: 'Prompt',
+                        },
                     }}
                 />
+
                 <Typography
                     sx={{
                     fontFamily: 'Prompt',
@@ -510,7 +551,7 @@ function Page() {
                     </Typography>
                     <TextField
                         fullWidth
-                        value={courseId}
+                        value={selectedCourse.course_id}
                         slotProps={{
                             htmlInput: { readOnly: true }, // Make field read-only
                         }}
@@ -536,7 +577,7 @@ function Page() {
                     </Typography>
                     <TextField
                         fullWidth
-                        value={courseName}
+                        value={selectedCourse.course_name}
                         slotProps={{
                             htmlInput: { readOnly: true }, // Make field read-only
                         }}
@@ -598,10 +639,13 @@ function Page() {
                     <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'Bold', color: '#8F16AD', mb: 1, fontSize: '20px' }}>
                         Course ID
                     </Typography>
+                    
                     <TextField
                         fullWidth
-                        value={courseId}
-                        onChange={(e) => setCourseId(e.target.value)}
+                        value={selectedCourse.course_id}
+                        onChange={handleInputChange}
+                        error={error}
+                        helperText={error ? errorMessage : ''}
                         sx={{
                             mb: 2,
                             '& .MuiInputBase-root': {
@@ -611,13 +655,19 @@ function Page() {
                             },
                         }}
                     />
+
                     <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'Bold', color: '#8F16AD', mb: 1, fontSize: '20px' }}>
                         Course Name
                     </Typography>
                     <TextField
                         fullWidth
-                        value={courseName}
-                        onChange={(e) => setCourseName(e.target.value)}
+                        value={selectedCourse.course_name}
+                        onChange={(e) =>
+                            setSelectedCourse((prev) => ({
+                                ...prev,
+                                course_name: e.target.value,
+                            }))
+                        }
                         sx={{
                             '& .MuiInputBase-root': {
                                 backgroundColor: '#EDEDED',
