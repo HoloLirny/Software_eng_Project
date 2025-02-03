@@ -29,9 +29,10 @@ model user_course {
 }
 
 model student {
-  faculty         String           @db.VarChar(255)
   student_name    String           @db.VarChar(255)
   student_id      String           @unique
+  student_email   String           @unique
+  password        String
   id              Int              @id @default(autoincrement())
   attendances     attendance[]
 }
