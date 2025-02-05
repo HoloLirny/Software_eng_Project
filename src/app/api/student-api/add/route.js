@@ -8,7 +8,7 @@ export async function POST(req) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 5; 
+    const teacher_id = 1; 
 
     const teacher = await prisma.user.findUnique({
         where: { id: teacher_id },
@@ -48,6 +48,11 @@ export async function POST(req) {
           student_email
         },
       });
+    }else{
+        return new Response(
+            JSON.stringify({ error: "Student already exists." }),
+            { status: 400 }
+          );
     }
 
     return new Response(

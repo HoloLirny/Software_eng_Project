@@ -9,7 +9,7 @@ const uploadDir = path.join(process.cwd(), "public/uploads");
 export async function POST(request) {
   try {
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 5; // Replace with actual logic when auth is implemented
+    const teacher_id = 1; // Replace with actual logic when auth is implemented
 
     const teacher = await prisma.user.findUnique({
       where: { id: teacher_id },
