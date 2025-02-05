@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 
 export async function POST(req) {
     try{
-        const { course_id, user_name, email, password } = await req.json();
+        const { course_id, email, password } = await req.json();
         const existingEmailUser = await prisma.user.findUnique({
             where: { email },
         });
@@ -17,15 +17,15 @@ export async function POST(req) {
         if (!existingCourse) {
             return new Response(
                 JSON.stringify({
-                message: `Course with ID ${course_id} already exists`,
+                message: `Course with ID ${course_id} not found`,
                 }),
-                { status: 400 }
+                { status: 404 }
             );
         }
 
         ///////////////////////////////////////////////////
         // Mock teacher_id for now (replace with actual session logic later)
-        const teacher_id = 5; // Replace with actual logic when auth is implemented
+        const teacher_id = 1; // Replace with actual logic when auth is implemented
 
         const teacher = await prisma.user.findUnique({
             where: { id: teacher_id },
@@ -84,7 +84,6 @@ export async function POST(req) {
 
         const newTA = await prisma.user.create({
             data: {
-              user_name,
               email,
               password : hashedPassword,
               user_role: 'TA',

@@ -15,6 +15,34 @@ export async function POST(req) {
       );
     }
 
+    ///////////////////////////////////////////////////////
+    // Mock teacher_id for now (replace with actual session logic later)
+    const teacher_id = 1; // Replace with actual logic when auth is implemented
+
+    const teacher = await prisma.user.findUnique({
+      where: { id: teacher_id },
+      select: { user_role: true },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with ID ${teacher_id} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with ID ${teacher_id} is not a TEACHER`,
+        }),
+        { status: 403 }
+      );
+    }
+    ///////////////////////////////////////////////////////
+
     // Check if the course exists
     const course = await prisma.course.findUnique({
       where: { course_id: course_id }, // Use course_id as per your schema
@@ -43,13 +71,38 @@ export async function POST(req) {
       );
     }
 
+    // Check if the student is already enrolled in the course
+    const existingAttendance = await prisma.attendance.findFirst({
+      where: {
+        course_id: course_id,
+        student_id: student_id,
+      },
+    });
+
+    if (existingAttendance) {
+      return new Response(
+        JSON.stringify({
+          message: "Student with id " + student_id + " is already enrolled in course with id " + course_id,
+        }),
+        { status: 409 }
+      );
+    }
+
+    const now = new Date();
+
+    // Extract only the date (YYYY-MM-DD)
+    const dateOnly = now.toISOString().split("T")[0];
+
+    const thailandTime = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Bangkok', hour12: false });
+  
     // Create an attendance record
     const attendance = await prisma.attendance.create({
       data: {
         course_id: course_id,
         student_id: student_id,
-        date: new Date(), 
-        time: new Date(), 
+        user_id: teacher_id,
+        date: dateOnly, 
+        time: thailandTime, 
       },
     });
 

@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function POST(req) {
   try {
-    const { user_name, email, password, user_role } = await req.json();
+    const { email, password, user_role } = await req.json();
 
     // Check if the user already exists by email
     const existingEmailUser = await prisma.user.findUnique({
@@ -22,10 +22,9 @@ export async function POST(req) {
     // Create the new user
     const newUser = await prisma.user.create({
       data: {
-        user_name,
         email,
         password: hashedPassword,
-        user_role: user_role || 'TEACHER', 
+        user_role: user_role || 'STUDENT', 
       },
     });
 
