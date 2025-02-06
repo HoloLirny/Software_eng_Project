@@ -2,18 +2,28 @@ import { v4 as uuidv4 } from "uuid";
 
 interface Token {
   expiresAt: number;
+  used: boolean; // Flag for single-scan mode
+  mode: "time" | "single-scan"; // QR mode
 }
+
 let tokens: Record<string, Token> = {};
 
 // Generate a new token
 export async function GET(req: Request) {
-  const token = uuidv4();
-  const expiresAt = Date.now() + 1 * 60 * 1000; // 10 seconds expiration
+  const { searchParams } = new URL(req.url);
+  const mode = searchParams.get("mode") || "time"; // Default to time-based mode
 
-  tokens[token] = { expiresAt };
+  const token = uuidv4();
+  const expiresAt = Date.now() + 10 * 1000; // 10 seconds expiration
+
+  tokens[token] = {
+    expiresAt,
+    used: false,
+    mode: mode as "time" | "single-scan", // "time" or "single-scan"
+  };
 
   const baseUrl = "http://localhost:3000/attendance";
-  const url = `${baseUrl}/${token}`; // for testing
+  const url = `${baseUrl}/${token}`; // For testing
 
   return new Response(JSON.stringify({ url, token }), {
     headers: { "Content-Type": "application/json" },
@@ -22,31 +32,95 @@ export async function GET(req: Request) {
 
 // Validate token
 export async function POST(req: Request) {
-  const { token } = await req.json();
-  const record = tokens[token];
-  const now = Date.now();
+  try {
+    const { token } = await req.json();
+    const record = tokens[token];
+    const now = Date.now();
 
-  if (record && now < record.expiresAt) {
-    return new Response(JSON.stringify({ valid: true }), {
-      headers: { "Content-Type": "application/json" },
-    });
-  } else {
-    return new Response(JSON.stringify({ valid: false }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    if (!record) {
+      return new Response(
+        JSON.stringify({ valid: false, message: "Invalid Token" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (record.mode === "time") {
+      // Time-based expiration
+      if (now < record.expiresAt) {
+        return new Response(
+          JSON.stringify({ valid: true, message: "Valid Token" }),
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      } else {
+        return new Response(
+          JSON.stringify({ valid: false, message: "Token Expired" }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+    } else if (record.mode === "single-scan") {
+      // Single-scan mode
+      if (record.used) {
+        return new Response(
+          JSON.stringify({
+            valid: false,
+            message: "Token has already been used. Please scan a new QR code.",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      } else {
+        record.used = true; // Mark as used
+
+        // Generate a new token
+        const newToken = uuidv4();
+        const expiresAt = Date.now() + 10 * 1000; // 10 seconds expiration
+        tokens[newToken] = {
+          expiresAt,
+          used: false,
+          mode: "single-scan",
+        };
+
+        const baseUrl = "http://localhost:3000/attendance";
+        const newUrl = `${baseUrl}/${newToken}`;
+
+        return new Response(
+          JSON.stringify({
+            valid: true,
+            message: "Token Valid",
+            newUrl,
+            newToken,
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ valid: false, message: "Unknown Error" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ valid: false, message: "Invalid Request Data" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }
-
-//static URL test
-// export async function GET(req: Request) {
-//   const baseUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; // Static YouTube link for testing
-
-//   // Append the token to the URL to make it unique every time
-//   const token = `youtube-token-${Date.now()}`; // Append timestamp for uniqueness
-//   const urlWithToken = `${baseUrl}&token=${token}`; // Modify the URL with the token
-
-//   return new Response(JSON.stringify({ url: urlWithToken, token }), {
-//     headers: { "Content-Type": "application/json" },
-//   });
-// }
