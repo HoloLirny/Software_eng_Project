@@ -10,13 +10,13 @@ export default function Home() {
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
   const [mode, setMode] = useState<"time" | "single-scan">("time");
   const [isTokenUsed, setIsTokenUsed] = useState<boolean>(false);
-  const [timeLimit, setTimeLimit] = useState<number>(600); // Total time in seconds
-  const [remainingTime, setRemainingTime] = useState<number>(600); // Countdown
-  const [intervalTime, setIntervalTime] = useState<number>(5); // Refresh interval (default 5s)
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState<number>(0);
+  const [timeLimitSeconds, setTimeLimitSeconds] = useState<number>(30);
+  const [remainingTime, setRemainingTime] = useState<number>(0);
+  const [intervalTime, setIntervalTime] = useState<number>(5);
   const [countdownId, setCountdownId] = useState<NodeJS.Timeout | null>(null);
-  const [isRunning, setIsRunning] = useState<boolean>(false); // Control QR visibility
+  const [isRunning, setIsRunning] = useState<boolean>(false);
 
-  // Fetch QR Code
   const generateQRCode = async () => {
     try {
       const res = await fetch(`/api/generate-qr?mode=${mode}`);
@@ -36,42 +36,22 @@ export default function Home() {
     }
   };
 
-  // Check if token is used
-  const checkTokenStatus = async () => {
-    if (!token || mode !== "single-scan") return;
-
-    try {
-      const res = await fetch(`/api/check-token?token=${token}`);
-      if (!res.ok) throw new Error("Failed to check token");
-
-      const data: { used: boolean } = await res.json();
-      if (data.used) {
-        setIsTokenUsed(true);
-        generateQRCode(); // Auto-regenerate
-      }
-    } catch (error) {
-      console.error("Error checking token status:", error);
-    }
-  };
-
-  // Start interval (for time mode)
   const startInterval = () => {
-    if (timerId) clearInterval(timerId); // Clear any existing timers
-    if (countdownId) clearInterval(countdownId); // Clear countdown timer
+    if (timerId) clearInterval(timerId);
+    if (countdownId) clearInterval(countdownId);
 
-    setRemainingTime(timeLimit); // Reset countdown
-    setIsRunning(true); // Show QR
+    let totalSeconds = timeLimitMinutes * 60 + timeLimitSeconds;
+    setRemainingTime(totalSeconds);
+    setIsRunning(true);
 
-    generateQRCode(); // Generate QR immediately
+    generateQRCode();
 
-    // QR Regeneration Interval
     const regenTimer = setInterval(() => {
       generateQRCode();
     }, intervalTime * 1000);
 
     setTimerId(regenTimer);
 
-    // Real-Time Countdown
     const countdownTimer = setInterval(() => {
       setRemainingTime((prev) => {
         if (prev > 0) return prev - 1;
@@ -81,18 +61,16 @@ export default function Home() {
 
     setCountdownId(countdownTimer);
 
-    // Stop both intervals when time is up
     setTimeout(() => {
       clearInterval(regenTimer);
       clearInterval(countdownTimer);
       setTimerId(null);
       setCountdownId(null);
-      setIsRunning(false); // Hide QR
-      setQrCode(""); // Clear QR
-    }, timeLimit * 1000);
+      setIsRunning(false);
+      setQrCode("");
+    }, totalSeconds * 1000);
   };
 
-  // Poll token status every 3 sec in single-scan mode
   useEffect(() => {
     let pollId: NodeJS.Timeout | null = null;
 
@@ -105,27 +83,26 @@ export default function Home() {
     };
   }, [token, mode]);
 
-  useEffect(() => {
-    startInterval();
-    return () => {
-      if (timerId) clearInterval(timerId);
-    };
-  }, [mode, intervalTime]);
+  const handleSecondsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let seconds = parseInt(e.target.value) || 0;
+    let minutes = timeLimitMinutes;
+    if (seconds >= 60) {
+      minutes += Math.floor(seconds / 60);
+      seconds %= 60;
+    }
+    setTimeLimitMinutes(minutes);
+    setTimeLimitSeconds(seconds);
+  };
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>Class Attendance QR Code</h1>
 
       <div style={{ marginTop: "20px" }}>
-        {/* {qrCode ? (
-          <img src={qrCode} alt="QR Code" />
-        ) : (
-          <p>Loading QR Code...</p>
-        )} */}
         {isRunning && qrCode ? (
           <img src={qrCode} alt="QR Code" />
         ) : (
-          <p>Loading QR Code...</p>
+          <p>No QR Code generated yet.</p>
         )}
       </div>
 
@@ -145,7 +122,6 @@ export default function Home() {
         <label htmlFor="interval">
           <strong>Refresh Interval (seconds):</strong>
         </label>
-
         <input
           type="number"
           id="interval"
@@ -155,14 +131,25 @@ export default function Home() {
           disabled={mode === "single-scan"}
         />
         <p>Time Left: {remainingTime} sec</p>
-        <label htmlFor="timeLimit">Total Active Time (seconds): </label>
+        <label htmlFor="timeLimit">Total Active Time: </label>
         <input
           type="number"
-          id="timeLimit"
-          value={timeLimit}
-          onChange={(e) => setTimeLimit(parseInt(e.target.value) || 0)}
+          id="timeLimitMinutes"
+          value={timeLimitMinutes}
+          onChange={(e) => setTimeLimitMinutes(parseInt(e.target.value) || 0)}
           style={{ color: "black", marginLeft: "10px", padding: "5px" }}
         />
+        min
+        <input
+          type="number"
+          id="timeLimitSeconds"
+          value={timeLimitSeconds}
+          onChange={handleSecondsChange}
+          style={{ color: "black", marginLeft: "10px", padding: "5px" }}
+        />
+        sec
+      </div>
+      <div>
         <button
           onClick={startInterval}
           style={{ marginLeft: "10px", padding: "5px" }}
