@@ -27,16 +27,15 @@ import axios from 'axios';
 function Page() {
     const router = useRouter();
     const [openAddTA, setOpenAddTA] = useState(false);
-    const [taList, setTaList] = useState([{}]);
+    const [taList, setTaList] = useState([]);
     const [initialPassword, setInitialPassword] = useState('');
     const [openTAEmailPopup, setOpenTAEmailPopup] = useState(false);
     const [files, setFiles] = useState([
-        { name: 'studenList.xlsx'}
     ]);
     const [email, setEmail] = useState('');
-    const [role, setRole] = useState('TEACHER')
+    const [role, setRole] = useState('TEACHER'); {/*FIXME: change this when login is work*/}
 
-    const validatePassword = (password) => {
+    const validatePassword = (password: string) => {
         return password.length >= 8;
     }
 
@@ -59,6 +58,7 @@ function Page() {
     }
 
     const handleAddTA = async () => {
+        {/*TODO: change course_id when login is work*/}
         const newTA = {course_id: "001001", email: email, password: initialPassword };
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/ta-api/add`, {
@@ -74,6 +74,8 @@ function Page() {
                     confirmButtonText: 'OK',
                     willClose: () => setOpenTAEmailPopup(true)
                 })
+                setEmail('');
+                fetchTA();
             }else{
                 Swal.fire({
                     title: 'Error!',
@@ -85,16 +87,15 @@ function Page() {
         } catch (error) {
             console.error("Error adding TA:", error);
         }
-        setEmail('');
     };
 
-    function validateEmail (email:string) {
+    function validateEmail (email: string) {
         const cmuRegex = /^[a-zA-Z0-9._%+-]+@cmu.ac.th$/;
         const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail.com$/;
         return cmuRegex.test(email) || gmailRegex.test(email);
     }
 
-    const confirmDeleteTA = (index) => {
+    const confirmDeleteTA = (index: number) => {
         Swal.fire({
             title: 'Are you sure?',
             text: 'You will not be able to recover this TA!',
@@ -109,15 +110,15 @@ function Page() {
         });
     }
 
-    // Remove TA from the list
-    const handleDeleteTA = async (index) => {
+    const handleDeleteTA = async (index: number) => {
         const toDeleteTA = taList[index];
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/ta-api/delete`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(toDeleteTA.id),
+                body: JSON.stringify({id: toDeleteTA.id}),
             });
+
             if (response.status == 200){
                 Swal.fire({
                     title: 'Success!',
@@ -125,7 +126,7 @@ function Page() {
                     icon: 'success',
                     confirmButtonText: 'OK',
                 })
-                setTaList(taList.filter((ta, i) => i !== index));
+                fetchTA();
             }else{
                 Swal.fire({
                     title: 'Error!',
@@ -139,41 +140,92 @@ function Page() {
         }
     };
     
-    // TODO: Implement this function with backend
-    const handleFileUpload = (event) => {
-        const newFiles = Array.from(event.target.files);
-        setFiles([...files, ...newFiles]);
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0]; // Get the selected file
+        
+        if (!file) return;
+
+        uploadFile(file);
     };
 
-    // TODO: Implement this function with backend
-    const handleDragOver = (event) => {
-        event.preventDefault();
-    };
-
-    // TODO: Implement this function with backend
     const handleDrop = (event) => {
         event.preventDefault();
         const droppedFiles = Array.from(event.dataTransfer.files);
-        setFiles([...files, ...droppedFiles]);
+        const excelFiles = droppedFiles.filter(file => file.name.endsWith(".xls") || file.name.endsWith(".xlsx"));
+        if (excelFiles.length === 0) {
+            Swal.fire({ title: 'Error!', text: 'Please upload an Excel file (.xls or .xlsx)', icon: 'error', confirmButtonText: 'OK' });
+            return;
+        }
+
+        uploadFile(excelFiles[0]);
+    };
+
+    const uploadFile = async (file) => {
+        const formData = new FormData();
+        // FIXME: Change course_id and section to the actual course_id and section
+        formData.append("file", file); // Append the file
+        formData.append("course_id", "001001"); // Append the course_id
+        formData.append("section", "001")
+
+        try {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/file-api/upload`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data", // Required for file uploads
+                },
+            });
+    
+            if (response.status === 200) {
+                Swal.fire({ 
+                    title: 'Success!', 
+                    text: 'File uploaded successfully!', 
+                    icon: 'success', 
+                    confirmButtonText: 'OK' });
+                fetchFile();
+            } else {
+                Swal.fire({ 
+                    title: 'Error!', 
+                    text: 'File upload failed!', 
+                    icon: 'error', 
+                    confirmButtonText: 'OK' });
+            }
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            Swal.fire({ 
+                title: 'Error!', 
+                text: 'An error occurred!', 
+                icon: 'error', 
+                confirmButtonText: 'OK' });
+        }
+    }
+
+    const fetchTA = async () => {
+        try {
+          const result = await axios.get(
+            `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/get/get_all_ta`
+          );
+          console.log(result.data);
+          setTaList(result.data);
+        } catch (error) {
+          console.error("Error fetching TA:", error);
+        }
+    };
+
+    const fetchFile = async () => {
+        try {
+            const result = await axios.get(
+                `${process.env.NEXT_PUBLIC_BACKEND}/file-api/get/get_all_file`
+            );
+            console.log(result.data);
+            setFiles(result.data);
+        } catch (error) {
+            console.error("Error fetching file:", error);
+        }
     };
 
     useEffect(() => {
-        const fetchTA = async () => {
-          try {
-            const result = await axios.get(
-              `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/get/get_all_ta`
-            );
-            console.log(result.data);
-            setTaList(result.data);
-          } catch (error) {
-            console.error("Error fetching TA:", error);
-          }
-        };
-        
-        fetchTA(); // Call the async function
-      }, [email, ]);
-
-
+        fetchTA();
+        fetchFile();
+      }, []);
 
     return (
         <Box
@@ -313,37 +365,40 @@ function Page() {
                             <Box sx={{ width: '100%', height: '2px', bgcolor: '#8F16AD', mt: 0.5 }} />
                         </Box>
 
-                        {taList.map((ta, index) => (
-                            <ListItem
-                                key={index}
-                                sx={{
-                                    bgcolor: '#F5F5F5',
-                                    borderRadius: 2,
-                                    mb: 1,
-                                    px: 2,
-                                    display: 'flex',
-                                    justifyContent: 'space-between'
-                                }}>
+                        <Box sx = {{ maxHeight: 250, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
+                            {taList.map((ta, index) => (
+                                <ListItem
+                                    key={index}
+                                    sx={{
+                                        bgcolor: '#F5F5F5',
+                                        borderRadius: 2,
+                                        mb: 1,
+                                        px: 2,
+                                        display: 'flex',
+                                        justifyContent: 'space-between'
+                                    }}>
 
-                                <ListItemText 
-                                    primary={`Email: ${ta.email}`} 
-                                    sx={{ color: '#8F16AD' }}
-                                />
-                                {role == 'TEACHER' ? 
-                                    <IconButton onClick={() => confirmDeleteTA(index)}>
-                                        <DeleteIcon sx={{ color: '#8F16AD' }} />
-                                    </IconButton>
-                                    : <Box></Box>}
-                                    
+                                    <ListItemText 
+                                        primary={`Email: ${ta.email}`} 
+                                        sx={{ color: '#8F16AD' }}
+                                    />
+                                    {role == 'TEACHER' ? 
+                                        <IconButton onClick={() => confirmDeleteTA(index)}>
+                                            <DeleteIcon sx={{ color: '#8F16AD' }} />
+                                        </IconButton>
+                                        : <Box></Box>}
+                                        
 
-                            </ListItem>
-                        ))}
+                                </ListItem>
+                            )).reverse()} {/* Reverse the list to show the latest TA first */}
+                        </Box>
                     </List>
                 </Box>
 
 
-                {/* Upload file Box */}
+                {/* File Box */}
                 <Box sx = {{flexDirection: 'column',width: '50%', ml: 'auto'}}>
+                    {/* Upload files box */}
                     <Box sx={{
                         border: '2px dashed #8F16AD',
                         padding: 3,
@@ -366,31 +421,40 @@ function Page() {
                                 padding: 3,
                                 mt: 2,
                                 bgcolor: '#fff',
+                                textAlign: 'center',
+                                cursor: 'pointer',
                             }}
-                            onDragOver={handleDragOver}
+                            onDragOver={(e) => e.preventDefault()}
                             onDrop={handleDrop}
                         >
                             <Typography sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Drag files <b>here</b></Typography>
                             <Typography>or</Typography>
                             <Button variant="contained" component="label" sx={{ mt: 1, bgcolor: '#8F16AD' }}>
                                 Browse
-                                <input hidden type="file" multiple onChange={handleFileUpload} />
+                                <input hidden type="file" accept=".xls,.xlsx" onChange={handleFileUpload} />
                             </Button>
-                        </Box>
-                            
+                        </Box>         
+                    </Box>
+                    
+                    {/* show all recently upload file */}
+                    <Box>
                         {files.length > 0 && (
-                            <Box sx={{ mt: 3, bgcolor: '#fff', padding: 2, borderRadius: 2 }}>
-                                <Typography variant="subtitle1" sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Recent files</Typography>
-                                <List>
-                                    {files.map((file, index) => (
-                                        <ListItem key={index} sx={{ display: 'flex', alignItems: 'center' }}>
-                                            <InsertDriveFileIcon sx={{ color: '#8F16AD', mr: 1 }} />
-                                            <ListItemText primary={file.name} sx={{ color: '#8F16AD' }} />
-                                        </ListItem>
-                                    ))}
-                                </List>
-                            </Box>
-                        )}
+                                <Box sx= {{mt: 2}}> 
+                                    <Box>
+                                        <Typography variant="subtitle1" sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Recent files</Typography>
+                                    </Box>
+                                    <Box sx = {{ maxHeight: 100, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
+                                        <List>
+                                            {files.map((file, index) => (
+                                                <ListItem key={index} sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <InsertDriveFileIcon sx={{ color: '#8F16AD', mr: 1 }} />
+                                                    <ListItemText primary={file.file_name} sx={{ color: '#8F16AD' }} />
+                                                </ListItem>
+                                            ))}
+                                        </List>
+                                    </Box>
+                                </Box>
+                            )}
                     </Box>
                 </Box>
 
