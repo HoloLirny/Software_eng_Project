@@ -4,8 +4,8 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/ta-api/delete?id=3
 export async function DELETE(req) {
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    // const { searchParams } = new URL(req.url);
+    const id = await req.json();
 
     if (!id) {
       return NextResponse.json(
@@ -65,10 +65,11 @@ export async function DELETE(req) {
       where: { id: parsedId },
     });
 
-    return NextResponse.json({
-      message: "TA deleted successfully",
-      deletedTA,
-    });
+    return NextResponse.json(
+      { message: "TA deleted successfully",
+        deletedTA,
+      },
+      { status: 200 });
   } catch (error) {
     console.error("Error deleting TA:", error);
     return NextResponse.json(

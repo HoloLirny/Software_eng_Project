@@ -34,26 +34,50 @@ function Page() {
         { name: 'studenList.xlsx'}
     ]);
     const [email, setEmail] = useState('');
-
     const [role, setRole] = useState('TEACHER')
 
-        // Add TA to the list
-    const handleAddTA = () => {
-        const newTA = {course_id: "261409", email: email, password: initialPassword };
-        // taList.push(newTA)
+    const validatePassword = (password) => {
+        return password.length >= 8;
+    }
+
+    const handleCreateButton = () => {
+        if (validatePassword(initialPassword)) {
+            setOpenTAEmailPopup(true);
+        }
+    }
+
+    const pressAddTAButton = () => {
+        if (validateEmail(email)) {
+            setOpenTAEmailPopup(false);
+            handleAddTA();
+        }
+    }
+
+    const pressCancelButton = () => {
+        setEmail('');
+        setOpenTAEmailPopup(false);
+    }
+
+    const handleAddTA = async () => {
+        const newTA = {course_id: "001001", email: email, password: initialPassword };
         try {
-            const respond = axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/ta-api/add/add_ta`, newTA);
-            if (respond.status == 201){
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/ta-api/add`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newTA),
+            });
+            if (response.status == 201){
                 Swal.fire({
                     title: 'Success!',
                     text: 'TA has been added!',
                     icon: 'success',
-                    confirmButtonText: 'OK'
+                    confirmButtonText: 'OK',
+                    willClose: () => setOpenTAEmailPopup(true)
                 })
             }else{
                 Swal.fire({
                     title: 'Error!',
-                    text: respond.message,
+                    text: 'TA has not been added!',
                     icon: 'error',
                     confirmButtonText: 'OK'
                 })
@@ -64,10 +88,55 @@ function Page() {
         setEmail('');
     };
 
+    function validateEmail (email:string) {
+        const cmuRegex = /^[a-zA-Z0-9._%+-]+@cmu.ac.th$/;
+        const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail.com$/;
+        return cmuRegex.test(email) || gmailRegex.test(email);
+    }
+
+    const confirmDeleteTA = (index) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You will not be able to recover this TA!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, keep it',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                handleDeleteTA(index);
+            }
+        });
+    }
+
     // Remove TA from the list
-    // TODO: Implement this function with backend
-    const handleDeleteTA = (index) => {
-        setTaList(taList.filter((_, i) => i !== index));
+    const handleDeleteTA = async (index) => {
+        const toDeleteTA = taList[index];
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/ta-api/delete`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(toDeleteTA.id),
+            });
+            if (response.status == 200){
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'TA has been deleted!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                })
+                setTaList(taList.filter((ta, i) => i !== index));
+            }else{
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'TA has not been deleted!',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                })
+            }
+        } catch (error) {
+            console.error("Error deleting TA:", error);
+        }
     };
     
     // TODO: Implement this function with backend
@@ -102,7 +171,7 @@ function Page() {
         };
         
         fetchTA(); // Call the async function
-      }, [email]);
+      }, [email, ]);
 
 
 
@@ -115,8 +184,8 @@ function Page() {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-            }}
-        >       
+            }}>
+
             <Button
                     onClick={() => router.back()}
                     sx={{
@@ -184,8 +253,11 @@ function Page() {
                                         label="Initial password"
                                         value={initialPassword}
                                         onChange={(e) => setInitialPassword(e.target.value)}
-                                        sx={{ mb: 2, bgcolor: '#fff' }}
+                                        sx={{ bgcolor: '#fff' }}
                                     />
+                                    { validatePassword(initialPassword) ? <Box></Box> : 
+                                    <Typography sx={{ color: 'red', fontSize: '0.8rem', mb: 2 }}>
+                                        Password must be at least 8 characters</Typography>}
 
                                     <Button
                                         fullWidth
@@ -195,35 +267,38 @@ function Page() {
                                             fontWeight: 'bold',
                                             '&:hover': { bgcolor: '#7B1395' },
                                         }}
-                                        onClick={() => setOpenTAEmailPopup(true)}>
+                                        onClick={() => handleCreateButton()}>
                                         Create
                                     </Button>
+
+                                    {/* Popup Dialog */}
+                                    <Dialog open={openTAEmailPopup} onClose={() => setOpenTAEmailPopup(false)} sx={{ '& .MuiPaper-root': { borderRadius: 3, padding: 2 } }}>
+                                        <DialogTitle sx={{ color: '#8F16AD', fontWeight: 'bold', textAlign: 'center' }}>
+                                            Please input email here.
+                                        </DialogTitle>
+                                        <DialogContent>
+                                            <TextField
+                                                fullWidth
+                                                variant="outlined"
+                                                placeholder="cmu_email@cmu.ac.th..."
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                sx={{ mt: 1 }}
+                                            />
+                                            {!validateEmail(email) && email.length > 0 ? <Typography sx={{ color: 'red', fontSize: '0.8rem' }}>Please input valid email</Typography> : <Box></Box>}
+                                        </DialogContent>
+                                        <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
+                                            <Button sx={{ bgcolor: '#8F16AD', color: '#fff', fontWeight: 'bold' }} onClick={pressAddTAButton}>
+                                                ADD
+                                            </Button>
+                                            <Button sx={{ bgcolor: 'red', color: '#fff', fontWeight: 'bold' }} onClick={pressCancelButton}>
+                                                Cancel
+                                            </Button>
+                                        </DialogActions>
+                                    </Dialog>
+
                                 </Box>
                             </Collapse>
-                        {/* Popup Dialog */}
-                            <Dialog open={openTAEmailPopup} onClose={() => setOpenTAEmailPopup(false)} sx={{ '& .MuiPaper-root': { borderRadius: 3, padding: 2 } }}>
-                                <DialogTitle sx={{ color: '#8F16AD', fontWeight: 'bold', textAlign: 'center' }}>
-                                    Please input email here.
-                                </DialogTitle>
-                                <DialogContent>
-                                    <TextField
-                                        fullWidth
-                                        variant="outlined"
-                                        placeholder="cmu_email@cmu.ac.th..."
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        sx={{ mt: 1 }}
-                                    />
-                                </DialogContent>
-                                <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
-                                    <Button sx={{ bgcolor: '#8F16AD', color: '#fff', fontWeight: 'bold' }} onClick={() => { handleAddTA() }}>
-                                        ADD
-                                    </Button>
-                                    <Button sx={{ bgcolor: 'red', color: '#fff', fontWeight: 'bold' }} onClick={() => setOpenTAEmailPopup(false)}>
-                                        Cancel
-                                    </Button>
-                                </DialogActions>
-                            </Dialog>
                         </Box>
                         :
                         <Box/>
@@ -248,14 +323,14 @@ function Page() {
                                     px: 2,
                                     display: 'flex',
                                     justifyContent: 'space-between'
-                                }}
-                            >
+                                }}>
+
                                 <ListItemText 
                                     primary={`Email: ${ta.email}`} 
                                     sx={{ color: '#8F16AD' }}
                                 />
                                 {role == 'TEACHER' ? 
-                                    <IconButton onClick={() => handleDeleteTA(index)}>
+                                    <IconButton onClick={() => confirmDeleteTA(index)}>
                                         <DeleteIcon sx={{ color: '#8F16AD' }} />
                                     </IconButton>
                                     : <Box></Box>}
