@@ -74,9 +74,9 @@ export default function Home() {
   useEffect(() => {
     let pollId: NodeJS.Timeout | null = null;
 
-    if (mode === "single-scan") {
-      pollId = setInterval(checkTokenStatus, 3000);
-    }
+    // if (mode === "single-scan") {
+    //   pollId = setInterval(checkTokenStatus, 3000);
+    // }
 
     return () => {
       if (pollId) clearInterval(pollId);
@@ -95,10 +95,23 @@ export default function Home() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div
+      style={{
+        textAlign: "center",
+        marginTop: "50px",
+      }}
+    >
       <h1>Class Attendance QR Code</h1>
 
-      <div style={{ marginTop: "20px" }}>
+      {/* QR Section */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: "20px",
+        }}
+      >
         {isRunning && qrCode ? (
           <img src={qrCode} alt="QR Code" />
         ) : (
@@ -106,6 +119,7 @@ export default function Home() {
         )}
       </div>
 
+      {/* For Testing Monitor. Will be hidden in Production */}
       <p>
         <strong>URL:</strong> {url || "Generating..."}
       </p>
