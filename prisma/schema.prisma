@@ -51,6 +51,7 @@ model course {
 model file {
   id          Int      @id @default(autoincrement())
   course_id   String
+  section     String
   file_name   String   @db.VarChar(255)
   file_url    String   @db.VarChar(255)
   uploaded_by Int
@@ -66,6 +67,7 @@ model attendance {
   id         Int       @id @default(autoincrement())
   student_id String
   course_id  String
+  section    String
   user_id    Int
   date       String?
   time       String?

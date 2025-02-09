@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../prisma/prisma";
 
-// http://localhost:3000/api/attendance-api/delete?course_id=001001
+// http://localhost:3000/api/attendance-api/delete?course_id=001001&section=001
 export async function DELETE(req) {
   try {
     const { searchParams } = new URL(req.url);
     const course_id = searchParams.get("course_id");
+    const section = searchParams.get("section");
 
-    if (!course_id) {
+    if (!course_id || !section) {
       return NextResponse.json(
-        { error: "Course ID is required" },
+        { error: "Course ID and Section are required" },
         { status: 400 }
       );
     }
@@ -49,9 +50,11 @@ export async function DELETE(req) {
       );
     }
 
-    // Use `deleteMany()` instead of `delete()` since course_id is not unique
     const deletedAttendance = await prisma.attendance.deleteMany({
-      where: { course_id },
+      where: { 
+        course_id,
+        section
+      },
     });
 
     return NextResponse.json({

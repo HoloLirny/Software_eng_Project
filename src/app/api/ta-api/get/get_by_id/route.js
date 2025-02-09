@@ -37,8 +37,8 @@ export async function GET(request) {
         },
         select: {
           id: true,
-          user_name: true,
           email: true,
+          user_role: true,
         },
       });
 

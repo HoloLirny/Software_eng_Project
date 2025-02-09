@@ -3,7 +3,10 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/attendance-api/add
 export async function POST(req) {
   try {
-    const { course_id, student_id } = await req.json();
+    const { course_id, student_id, section } = await req.json();
+    const now = new Date();
+    const dateOnly = now.toISOString().split("T")[0];
+    const thailandTime = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Bangkok', hour12: false });
 
     // Validate input
     if (!course_id || !student_id) {
@@ -71,34 +74,31 @@ export async function POST(req) {
       );
     }
 
-    // Check if the student is already enrolled in the course
+    // Check if the student is already check in the course that day
     const existingAttendance = await prisma.attendance.findFirst({
       where: {
         course_id: course_id,
+        section: section,
         student_id: student_id,
+        date: dateOnly,
       },
     });
 
     if (existingAttendance) {
       return new Response(
         JSON.stringify({
-          message: "Student with id " + student_id + " is already enrolled in course with id " + course_id,
+          message: "Student with id " + student_id + " is already enrolled in course with id " + course_id + 
+          " for section " + section + " today",
         }),
         { status: 409 }
       );
     }
-
-    const now = new Date();
-
-    // Extract only the date (YYYY-MM-DD)
-    const dateOnly = now.toISOString().split("T")[0];
-
-    const thailandTime = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Bangkok', hour12: false });
   
     // Create an attendance record
     const attendance = await prisma.attendance.create({
       data: {
         course_id: course_id,
+        section: section,
         student_id: student_id,
         user_id: teacher_id,
         date: dateOnly, 
@@ -108,7 +108,8 @@ export async function POST(req) {
 
     return new Response(
       JSON.stringify({
-        message: "Student with id " + student_id + " has been added to course with id " + course_id,
+        message: "Student with id " + student_id + " has been added to course with id " + course_id
+        + " for section " + section + " today",
         attendance: attendance,
       }),
       { status: 201 }
