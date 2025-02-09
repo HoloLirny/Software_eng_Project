@@ -38,8 +38,9 @@ export async function POST(request) {
     const formData = await request.formData();
     const file = formData.get("file");
     const courseId = formData.get("course_id");
+    const section = formData.get("section");
 
-    if (!file || !file.name || !courseId) {
+    if (!file || !file.name || !courseId || !section) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -68,6 +69,7 @@ export async function POST(request) {
         file_name: file.name,
         file_url: `/uploads/${file.name}`,
         course_id: courseId,
+        section: section,
         uploaded_by: teacher_id,
       },
     });
