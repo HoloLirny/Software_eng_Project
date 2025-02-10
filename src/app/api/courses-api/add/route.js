@@ -4,7 +4,7 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/courses-api/add
 export async function POST(req) {
   try {
-    const { course_id, course_name, total_student, scan_time } = await req.json();
+    const { course_id, course_name, scan_time } = await req.json();
 
     // Validate required fields
     if (!course_id || !course_name) {
@@ -17,7 +17,7 @@ export async function POST(req) {
     }
     ///////////////////////////////////////////////////////
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 5; // Replace with actual logic when auth is implemented
+    const teacher_id = 1; // Replace with actual logic when auth is implemented
 
     const teacher = await prisma.user.findUnique({
       where: { id: teacher_id },
@@ -61,7 +61,6 @@ export async function POST(req) {
           course_id,
           course_name,
           teacher_id,
-          total_student,
           scan_time,
         },
       }),

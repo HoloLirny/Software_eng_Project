@@ -4,8 +4,7 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/ta-api/delete?id=3
 export async function DELETE(req) {
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    const { id } = await req.json();
 
     if (!id) {
       return NextResponse.json(
@@ -19,7 +18,7 @@ export async function DELETE(req) {
 
     ///////////////////////////////////////////////////////
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 5; // Replace with actual logic when auth is implemented
+    const teacher_id = 1; // Replace with actual logic when auth is implemented
 
     const teacher = await prisma.user.findUnique({
       where: { id: teacher_id },
@@ -65,10 +64,12 @@ export async function DELETE(req) {
       where: { id: parsedId },
     });
 
-    return NextResponse.json({
-      message: "TA deleted successfully",
-      deletedTA,
-    });
+    return NextResponse.json(
+      { message: "TA deleted successfully",
+        deletedTA,
+      },
+      { status: 200 });
+
   } catch (error) {
     console.error("Error deleting TA:", error);
     return NextResponse.json(

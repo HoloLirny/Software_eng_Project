@@ -1,11 +1,14 @@
 import prisma from "../../../../../prisma/prisma";
+import bcrypt from 'bcrypt';
 
 export async function POST(req) {
   try {
-    const { student_id, faculty, student_name } = await req.json();
+    const { student_id, student_name, password, student_email } = await req.json();
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 5; 
+    const teacher_id = 1; 
 
     const teacher = await prisma.user.findUnique({
         where: { id: teacher_id },
@@ -41,9 +44,15 @@ export async function POST(req) {
         data: {
           student_id,
           student_name,
-          faculty,
+          password:hashedPassword,
+          student_email
         },
       });
+    }else{
+        return new Response(
+            JSON.stringify({ error: "Student already exists." }),
+            { status: 400 }
+          );
     }
 
     return new Response(
