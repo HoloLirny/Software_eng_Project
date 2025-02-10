@@ -20,6 +20,7 @@ import Swal from 'sweetalert2'
 import '@fontsource/prompt';
 import axios from 'axios';
 import './style.css';
+import CourseConfig from '../courseConfig/page'
 
 interface Course {
     course_id : number;
@@ -41,6 +42,10 @@ function Page() {
     const [changeOpen, setChangeOpen] = useState(false); // State for change dialog visibility
     const [error, setError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [courseconfig,setCourseconfig] = useState(false);
+    const [selectcourseconfig,setSelectcourseconfig] = useState(null);
+    const [pages, setPages] = useState("home"); // Manage page state
+    
     const handleAddClick = () => {
         setAddOpen(true);
     };
@@ -295,8 +300,21 @@ function Page() {
         fetchCourses(); // Call the async function
       }, [changeOpen,editOpen,addOpen,selectedCourse]);
       
+      const handlecourseconfig = (id) => {
+        setSelectcourseconfig(id);
+        setCourseconfig(true);
+        setPages("courseconfig");
+        console.log("page after",pages)
+
+      }
+
 
     return (
+        <>
+        {pages == "courseconfig" 
+        ? (
+            <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages}/>
+        ):( 
         <Box
             sx={{
                 minHeight: '100vh',
@@ -357,7 +375,10 @@ function Page() {
                         
                         <Grid size={{xs:12,md:6}} key={index}>
                             <Card
+                            
+                                onClick={() => handlecourseconfig(course.course_id)}
                                 sx={{
+                                    
                                     // bgcolor: '#F2BEFF',
                                     borderRadius: 4,
                                     padding: 2,
@@ -742,6 +763,9 @@ function Page() {
             </Dialog>
 
         </Box>
+    )}
+       
+        </>
     );
 }
 

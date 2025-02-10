@@ -23,9 +23,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import Swal from 'sweetalert2'
 import axios from 'axios';
+import Grid from '@mui/material/Grid2';
 
-function Page() {
-    const router = useRouter();
+function Page({ course_id, pages, setPages }) {
+   console.log(pages)
+    const router = useRouter(); 
     const [openAddTA, setOpenAddTA] = useState(false);
     const [taList, setTaList] = useState([]);
     const [initialPassword, setInitialPassword] = useState('');
@@ -239,7 +241,7 @@ function Page() {
             }}>
 
             <Button
-                    onClick={() => router.back()}
+                      onClick={() => setPages("course")}
                     sx={{
                         position: 'absolute',
                         top: 16,
@@ -268,195 +270,201 @@ function Page() {
                     position: 'relative',
                 }}
             >
-                {/* TA box */}
-                <Box sx = {{ flexDirection: 'column', width: '45%', mr: 'auto'}}>
-                    {/* Add TA Box */}
-                    {role == 'TEACHER' ?
-                        <Box
-                            sx={{
-                                border: '1px solid #8F16AD',
+                <Grid container spacing={2}>
+                    <Grid size={{xs:12,lg:4}}>
+                        {/* TA box */}
+                            <Box sx = {{ flexDirection: 'column', width: '45%', mr: 'auto'}}>
+                                {/* Add TA Box */}
+                                {role == 'TEACHER' ?
+                                    <Box
+                                        sx={{
+                                            border: '1px solid #8F16AD',
+                                            borderRadius: 2,
+                                            padding: 2,
+                                            bgcolor: '#F5F5F5',
+                                            position: 'relative',
+                                        }}>
+
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                cursor: 'pointer',
+                                            }}
+                                            onClick={() => setOpenAddTA(!openAddTA)}>
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#8F16AD' }}>
+                                                ADD TA
+                                            </Typography>
+                                            <IconButton>
+                                                {openAddTA ? <ExpandLessIcon sx={{ color: '#8F16AD' }} /> : <ExpandMoreIcon sx={{ color: '#8F16AD' }} />}
+                                            </IconButton>
+                                        </Box>
+
+                                        <Collapse in={openAddTA}>
+                                            <Box sx={{ mt: 2 }}>
+                                                <TextField
+                                                    fullWidth
+                                                    variant="outlined"
+                                                    label="Initial password"
+                                                    value={initialPassword}
+                                                    onChange={(e) => setInitialPassword(e.target.value)}
+                                                    sx={{ bgcolor: '#fff' }}
+                                                />
+                                                { validatePassword(initialPassword) ? <Box></Box> : 
+                                                <Typography sx={{ color: 'red', fontSize: '0.8rem', mb: 2 }}>
+                                                    Password must be at least 8 characters</Typography>}
+
+                                                <Button
+                                                    fullWidth
+                                                    sx={{
+                                                        bgcolor: '#8F16AD',
+                                                        color: '#fff',
+                                                        fontWeight: 'bold',
+                                                        '&:hover': { bgcolor: '#7B1395' },
+                                                    }}
+                                                    onClick={() => handleCreateButton()}>
+                                                    Create
+                                                </Button>
+
+                                                {/* Popup Dialog */}
+                                                <Dialog open={openTAEmailPopup} onClose={() => setOpenTAEmailPopup(false)} sx={{ '& .MuiPaper-root': { borderRadius: 3, padding: 2 } }}>
+                                                    <DialogTitle sx={{ color: '#8F16AD', fontWeight: 'bold', textAlign: 'center' }}>
+                                                        Please input email here.
+                                                    </DialogTitle>
+                                                    <DialogContent>
+                                                        <TextField
+                                                            fullWidth
+                                                            variant="outlined"
+                                                            placeholder="cmu_email@cmu.ac.th..."
+                                                            value={email}
+                                                            onChange={(e) => setEmail(e.target.value)}
+                                                            sx={{ mt: 1 }}
+                                                        />
+                                                        {!validateEmail(email) && email.length > 0 ? <Typography sx={{ color: 'red', fontSize: '0.8rem' }}>Please input valid email</Typography> : <Box></Box>}
+                                                    </DialogContent>
+                                                    <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
+                                                        <Button sx={{ bgcolor: '#8F16AD', color: '#fff', fontWeight: 'bold' }} onClick={pressAddTAButton}>
+                                                            ADD
+                                                        </Button>
+                                                        <Button sx={{ bgcolor: 'red', color: '#fff', fontWeight: 'bold' }} onClick={pressCancelButton}>
+                                                            Cancel
+                                                        </Button>
+                                                    </DialogActions>
+                                                </Dialog>
+
+                                            </Box>
+                                        </Collapse>
+                                    </Box>
+                                    :
+                                    <Box/>
+                                }
+
+                                {/* TA List */}
+                                <List sx={{ mt: 2 }}>
+                                    <Box sx={{ width: '100%', textAlign: 'left', position: 'relative', pb: 1 }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#8F16AD' }}>
+                                            TA list
+                                        </Typography>
+                                        <Box sx={{ width: '100%', height: '2px', bgcolor: '#8F16AD', mt: 0.5 }} />
+                                    </Box>
+
+                                    <Box sx = {{ maxHeight: 250, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
+                                        {taList.map((ta, index) => (
+                                            <ListItem
+                                                key={index}
+                                                sx={{
+                                                    bgcolor: '#F5F5F5',
+                                                    borderRadius: 2,
+                                                    mb: 1,
+                                                    px: 2,
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between'
+                                                }}>
+
+                                                <ListItemText 
+                                                    primary={`Email: ${ta.email}`} 
+                                                    sx={{ color: '#8F16AD' }}
+                                                />
+                                                {role == 'TEACHER' ? 
+                                                    <IconButton onClick={() => confirmDeleteTA(index)}>
+                                                        <DeleteIcon sx={{ color: '#8F16AD' }} />
+                                                    </IconButton>
+                                                    : <Box></Box>}
+                                                    
+
+                                            </ListItem>
+                                        )).reverse()} {/* Reverse the list to show the latest TA first */}
+                                    </Box>
+                                </List>
+                            </Box>
+                    </Grid>
+                
+                    <Grid size={{xs:12,lg:8}}>
+
+                    {/* File Box */}
+                        <Box sx = {{flexDirection: 'column',width: '50%', ml: 'auto'}}>
+                            {/* Upload files box */}
+                            <Box sx={{
+                                border: '2px dashed #8F16AD',
+                                padding: 3,
                                 borderRadius: 2,
-                                padding: 2,
                                 bgcolor: '#F5F5F5',
-                                position: 'relative',
+                                textAlign: 'center',
                             }}>
 
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    cursor: 'pointer',
-                                }}
-                                onClick={() => setOpenAddTA(!openAddTA)}>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#8F16AD' }}>
-                                    ADD TA
+                                <Typography variant="h6" sx={{ color: '#8F16AD', fontWeight: 'bold' }}>
+                                    Upload file!
                                 </Typography>
-                                <IconButton>
-                                    {openAddTA ? <ExpandLessIcon sx={{ color: '#8F16AD' }} /> : <ExpandMoreIcon sx={{ color: '#8F16AD' }} />}
-                                </IconButton>
-                            </Box>
+                                <Typography sx={{ color: '#8F16AD', fontSize: '0.9rem' }}>
+                                    Upload documents you want
+                                </Typography>
 
-                            <Collapse in={openAddTA}>
-                                <Box sx={{ mt: 2 }}>
-                                    <TextField
-                                        fullWidth
-                                        variant="outlined"
-                                        label="Initial password"
-                                        value={initialPassword}
-                                        onChange={(e) => setInitialPassword(e.target.value)}
-                                        sx={{ bgcolor: '#fff' }}
-                                    />
-                                    { validatePassword(initialPassword) ? <Box></Box> : 
-                                    <Typography sx={{ color: 'red', fontSize: '0.8rem', mb: 2 }}>
-                                        Password must be at least 8 characters</Typography>}
-
-                                    <Button
-                                        fullWidth
-                                        sx={{
-                                            bgcolor: '#8F16AD',
-                                            color: '#fff',
-                                            fontWeight: 'bold',
-                                            '&:hover': { bgcolor: '#7B1395' },
-                                        }}
-                                        onClick={() => handleCreateButton()}>
-                                        Create
-                                    </Button>
-
-                                    {/* Popup Dialog */}
-                                    <Dialog open={openTAEmailPopup} onClose={() => setOpenTAEmailPopup(false)} sx={{ '& .MuiPaper-root': { borderRadius: 3, padding: 2 } }}>
-                                        <DialogTitle sx={{ color: '#8F16AD', fontWeight: 'bold', textAlign: 'center' }}>
-                                            Please input email here.
-                                        </DialogTitle>
-                                        <DialogContent>
-                                            <TextField
-                                                fullWidth
-                                                variant="outlined"
-                                                placeholder="cmu_email@cmu.ac.th..."
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                sx={{ mt: 1 }}
-                                            />
-                                            {!validateEmail(email) && email.length > 0 ? <Typography sx={{ color: 'red', fontSize: '0.8rem' }}>Please input valid email</Typography> : <Box></Box>}
-                                        </DialogContent>
-                                        <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
-                                            <Button sx={{ bgcolor: '#8F16AD', color: '#fff', fontWeight: 'bold' }} onClick={pressAddTAButton}>
-                                                ADD
-                                            </Button>
-                                            <Button sx={{ bgcolor: 'red', color: '#fff', fontWeight: 'bold' }} onClick={pressCancelButton}>
-                                                Cancel
-                                            </Button>
-                                        </DialogActions>
-                                    </Dialog>
-
-                                </Box>
-                            </Collapse>
-                        </Box>
-                        :
-                        <Box/>
-                    }
-
-                    {/* TA List */}
-                    <List sx={{ mt: 2 }}>
-                        <Box sx={{ width: '100%', textAlign: 'left', position: 'relative', pb: 1 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#8F16AD' }}>
-                                TA list
-                            </Typography>
-                            <Box sx={{ width: '100%', height: '2px', bgcolor: '#8F16AD', mt: 0.5 }} />
-                        </Box>
-
-                        <Box sx = {{ maxHeight: 250, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
-                            {taList.map((ta, index) => (
-                                <ListItem
-                                    key={index}
+                                <Box
                                     sx={{
-                                        bgcolor: '#F5F5F5',
+                                        border: '1px solid #8F16AD',
                                         borderRadius: 2,
-                                        mb: 1,
-                                        px: 2,
-                                        display: 'flex',
-                                        justifyContent: 'space-between'
-                                    }}>
-
-                                    <ListItemText 
-                                        primary={`Email: ${ta.email}`} 
-                                        sx={{ color: '#8F16AD' }}
-                                    />
-                                    {role == 'TEACHER' ? 
-                                        <IconButton onClick={() => confirmDeleteTA(index)}>
-                                            <DeleteIcon sx={{ color: '#8F16AD' }} />
-                                        </IconButton>
-                                        : <Box></Box>}
-                                        
-
-                                </ListItem>
-                            )).reverse()} {/* Reverse the list to show the latest TA first */}
+                                        padding: 3,
+                                        mt: 2,
+                                        bgcolor: '#fff',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                    }}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={handleDrop}
+                                >
+                                    <Typography sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Drag files <b>here</b></Typography>
+                                    <Typography>or</Typography>
+                                    <Button variant="contained" component="label" sx={{ mt: 1, bgcolor: '#8F16AD' }}>
+                                        Browse
+                                        <input hidden type="file" accept=".xls,.xlsx" onChange={handleFileUpload} />
+                                    </Button>
+                                </Box>         
+                            </Box>
+                            
+                            {/* show all recently upload file */}
+                            <Box>
+                                {files.length > 0 && (
+                                        <Box sx= {{mt: 2}}> 
+                                            <Box>
+                                                <Typography variant="subtitle1" sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Recent files</Typography>
+                                            </Box>
+                                            <Box sx = {{ maxHeight: 100, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
+                                                <List>
+                                                    {files.map((file, index) => (
+                                                        <ListItem key={index} sx={{ display: 'flex', alignItems: 'center' }}>
+                                                            <InsertDriveFileIcon sx={{ color: '#8F16AD', mr: 1 }} />
+                                                            <ListItemText primary={file.file_name} sx={{ color: '#8F16AD' }} />
+                                                        </ListItem>
+                                                    ))}
+                                                </List>
+                                            </Box>
+                                        </Box>
+                                    )}
+                            </Box>
                         </Box>
-                    </List>
-                </Box>
-
-
-                {/* File Box */}
-                <Box sx = {{flexDirection: 'column',width: '50%', ml: 'auto'}}>
-                    {/* Upload files box */}
-                    <Box sx={{
-                        border: '2px dashed #8F16AD',
-                        padding: 3,
-                        borderRadius: 2,
-                        bgcolor: '#F5F5F5',
-                        textAlign: 'center',
-                    }}>
-
-                        <Typography variant="h6" sx={{ color: '#8F16AD', fontWeight: 'bold' }}>
-                            Upload file!
-                        </Typography>
-                        <Typography sx={{ color: '#8F16AD', fontSize: '0.9rem' }}>
-                            Upload documents you want
-                        </Typography>
-
-                        <Box
-                            sx={{
-                                border: '1px solid #8F16AD',
-                                borderRadius: 2,
-                                padding: 3,
-                                mt: 2,
-                                bgcolor: '#fff',
-                                textAlign: 'center',
-                                cursor: 'pointer',
-                            }}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={handleDrop}
-                        >
-                            <Typography sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Drag files <b>here</b></Typography>
-                            <Typography>or</Typography>
-                            <Button variant="contained" component="label" sx={{ mt: 1, bgcolor: '#8F16AD' }}>
-                                Browse
-                                <input hidden type="file" accept=".xls,.xlsx" onChange={handleFileUpload} />
-                            </Button>
-                        </Box>         
-                    </Box>
-                    
-                    {/* show all recently upload file */}
-                    <Box>
-                        {files.length > 0 && (
-                                <Box sx= {{mt: 2}}> 
-                                    <Box>
-                                        <Typography variant="subtitle1" sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Recent files</Typography>
-                                    </Box>
-                                    <Box sx = {{ maxHeight: 100, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
-                                        <List>
-                                            {files.map((file, index) => (
-                                                <ListItem key={index} sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    <InsertDriveFileIcon sx={{ color: '#8F16AD', mr: 1 }} />
-                                                    <ListItemText primary={file.file_name} sx={{ color: '#8F16AD' }} />
-                                                </ListItem>
-                                            ))}
-                                        </List>
-                                    </Box>
-                                </Box>
-                            )}
-                    </Box>
-                </Box>
+                    </Grid>         
+                </Grid>
 
             </Card>
 
