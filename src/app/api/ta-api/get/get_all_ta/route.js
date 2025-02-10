@@ -9,7 +9,6 @@ export async function GET() {
       where: { user_role: "TA" },
       select: {
         id: true, 
-        user_name: true,
         email: true,
         user_role: true,
       },
