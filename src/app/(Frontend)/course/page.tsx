@@ -19,6 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Swal from 'sweetalert2'
 import '@fontsource/prompt';
 import axios from 'axios';
+import './style.css';
 
 interface Course {
     course_id : number;
@@ -213,25 +214,26 @@ function Page() {
         return '';
       };
 
-    const handleAddCourse = async () => {
-        if (error.courseId || error.courseName) {
+      const handleAddCourse = async () => {
+        if (error.courseId || courseId == "" || courseName == "") {
             Swal.fire({
                 title: "Please check your input",
-                text: `please fill all the field`, 
+                text: `Please fill all the fields`, 
                 icon: "error",
-                timer: 1500
+                timer: 1500,
+                customClass: {
+                    popup: 'swal-popup'
+                }
             });
-        }else{
+        } else {
             const newCourse = {
                 id: courseId,
                 name: courseName,
             };
             const addCourse = {
-            course_id: courseId,
-            course_name: courseName,
+                course_id: courseId,
+                course_name: courseName,
             };
-    
-        // console.log("Payload sent to API:", addCourse); // Log payload for debugging
     
             try {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/courses-api/add`, {
@@ -239,40 +241,43 @@ function Page() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(addCourse),
                 });
-        
-                console.log("Response status:", response.status);
-                console.log("Response object:", response);
-        
+    
                 if (!response.ok) {
-                    const errorData = await response.text(); // Capture the error response
+                    const errorData = await response.text();
                     console.error("Error details from server:", errorData);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-        
+    
                 const data = await response.json();
                 console.log("Response data:", data);
+    
+                // Show the alert before closing the dialog
                 Swal.fire({
-                    title: "Successfull",
+                    title: "Successful",
                     text: `Course ${courseId} has been added`, 
                     icon: "success",
-                    timer: 1500
+                    timer: 1500,
+                    customClass: {
+                        popup: 'swal-popup'
+                    }
                 });
-        
+    
                 setCourses((prevCourses) => [...prevCourses, newCourse]);
-                setAddOpen(false);
-                setCourseId("");
-                setCourseName("");
+    
+                // Delay closing dialog slightly to ensure alert appears first
+                setTimeout(() => {
+                    setAddOpen(false);
+                    setCourseId("");
+                    setCourseName("");
+                }, 100); 
+    
             } catch (error) {
                 console.error("Error in frontend request:", error);
             }
-
-
-            setCourses([...courses, newCourse]); // Add new course to the array
-            setAddOpen(false); // Close dialog after adding
-            setCourseId(''); // Reset fields
-            setCourseName('');
         }
     };
+    
+    
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -360,12 +365,13 @@ function Page() {
                                 }}
                             >
                                 <Grid container alignItems="center" spacing={2}>
-                                    <Grid size={10}>
+                                    <Grid size={11}>
                                         <Typography
                                             variant="h6"
                                             sx={{
                                                 fontFamily: 'Prompt',
                                                 fontWeight: 'bold',
+                                                fontSize:{xs:"14px",sm:'20px'}
                                             }}
                                         >
                                             CourseID : <span style={{ color: '#BF48DD' }}>{course.course_id}</span>
@@ -373,6 +379,7 @@ function Page() {
                                         <Typography
                                             variant="h6"
                                             sx={{
+                                                fontSize:{xs:"14px",sm:'20px'},
                                                 fontFamily: 'Prompt',
                                                 fontWeight: 'bold',
                                                 color: 'black', // Set the color to black for Course Name
@@ -381,8 +388,8 @@ function Page() {
                                             Course Name : <span style={{ color: '#BF48DD' }}>{course.course_name}</span>
                                         </Typography>
                                     </Grid>
-                                    <Grid size={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                        <Button sx={{ height: '100%' }} onClick={() => handleEditClick(course)}>
+                                    <Grid size={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                        <Button sx={{ height: '100%' ,mr:-2}} onClick={() => handleEditClick(course)}>
                                             <MoreVertIcon fontSize="large" />
                                         </Button>
                                     </Grid>
@@ -411,8 +418,26 @@ function Page() {
 
 
             {/* Dialog for Adding Course */}
-            <Dialog open={addOpen} onClose={handleClose}  >
-                <DialogTitle sx={{width:'400px'}}>
+            <Dialog 
+    open={addOpen} 
+    onClose={handleClose}
+    sx={{ 
+        display: 'flex',
+        alignItems: 'center', // Centers content vertically
+        justifyContent: 'center', // Centers content horizontally
+        '& .MuiDialog-paper': { // Targets the dialog box itself
+            width: { xs: '250px', sm: '400px', md: '500px' },
+            // display: 'flex',
+            // flexDirection: 'column',
+            // alignItems: 'center', // Centers content inside
+            // textAlign: 'center'
+        }
+    }} 
+>
+                <DialogTitle  
+                  
+                >
+                    
                     <Button sx={{ml:-2}} onClick={handleClose}>
                         <CloseIcon fontSize='large' sx={{color:'#F2BEFF'}}/>
                     </Button>
@@ -424,7 +449,7 @@ function Page() {
                     fontWeight: 'Bold',
                     color: '#8F16AD',
                     mb: 1,
-                    fontSize: '20px',
+                    fontSize: {xs:"16px",sm:"20px"},
                     }}
                 >
                     Course ID
@@ -478,7 +503,7 @@ function Page() {
                     fontWeight: 'Bold',
                     color: '#8F16AD',
                     mb: 1,
-                    fontSize: '20px',
+                    fontSize: {xs:"16px",sm:"20px"},
                     }}
                 >
                     Course Name
@@ -523,7 +548,7 @@ function Page() {
                             width: '80%'  // Set width to 80%
                         }}
                     >
-                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: '20px' }}>
+                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: {xs:"16px",sm:"20px"},}}>
                             Add
                         </Typography>
                     </Button>
@@ -544,7 +569,7 @@ function Page() {
                             fontWeight: 'Bold',
                             color: '#8F16AD',
                             mb: 1,
-                            fontSize: '20px',
+                            fontSize: {xs:"16px",sm:"20px"},
                         }}
                     >
                         Course ID
@@ -570,7 +595,7 @@ function Page() {
                             fontWeight: 'Bold',
                             color: '#8F16AD',
                             mb: 1,
-                            fontSize: '20px',
+                            fontSize: {xs:"16px",sm:"20px"},
                         }}
                     >
                         Course Name
@@ -609,7 +634,7 @@ function Page() {
                         }}
                         onClick={handleChangeClick}
                     >
-                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: '20px' }}>
+                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: {xs:"16px",sm:"20px"},}}>
                             Edit
                         </Typography>
                     </Button>
@@ -622,7 +647,7 @@ function Page() {
                         }}
                         onClick={handleDeleteCourse}
                     >
-                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: '20px' }}>
+                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: {xs:"16px",sm:"20px"}, }}>
                             Delete
                         </Typography>
                     </Button>
@@ -636,7 +661,7 @@ function Page() {
                     </Button>
                 </DialogTitle>
                 <DialogContent sx={{ paddingLeft: 5, paddingRight: 5 }}>
-                    <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'Bold', color: '#8F16AD', mb: 1, fontSize: '20px' }}>
+                    <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'Bold', color: '#8F16AD', mb: 1, fontSize: {xs:"16px",sm:"20px"}, }}>
                         Course ID
                     </Typography>
                     
@@ -656,7 +681,7 @@ function Page() {
                         }}
                     />
 
-                    <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'Bold', color: '#8F16AD', mb: 1, fontSize: '20px' }}>
+                    <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'Bold', color: '#8F16AD', mb: 1, fontSize: {xs:"16px",sm:"20px"}, }}>
                         Course Name
                     </Typography>
                     <TextField
@@ -696,7 +721,7 @@ function Page() {
                         }}
                         onClick={handleChangeCourse}
                     >
-                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: '20px' }}>
+                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: {xs:"16px",sm:"20px"},}}>
                             Save
                         </Typography>
                     </Button>
@@ -709,7 +734,7 @@ function Page() {
                         }}
                         onClick={handleClosechange}
                     >
-                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: '20px' }}>
+                        <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: {xs:"16px",sm:"20px"}, }}>
                             Cancle
                         </Typography>
                     </Button>
