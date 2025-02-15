@@ -3,7 +3,7 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/attendance-api/add
 export async function POST(req) {
   try {
-    const { course_id, student_id, section } = await req.json();
+    const { course_id, student_id, section_lec, section_lab } = await req.json();
     const now = new Date();
     const dateOnly = now.toISOString().split("T")[0];
     const thailandTime = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Bangkok', hour12: false });

@@ -6,9 +6,12 @@ async function main() {
   console.log("Seeding database...");
   const now = new Date();
   const dateOnly = now.toISOString().split("T")[0];
-  const thailandTime = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Bangkok', hour12: false });
+  const thailandTime = now.toLocaleTimeString("en-US", {
+    timeZone: "Asia/Bangkok",
+    hour12: false,
+  });
 
-  // ✅ 1. Seed Users
+  // Seed Users
   const user1 = await prisma.user.upsert({
     where: { email: "teacher@example.com" },
     update: {},
@@ -19,6 +22,7 @@ async function main() {
     },
   });
 
+  // Seed TA
   const user2 = await prisma.user.upsert({
     where: { email: "ta@example.com" },
     update: {},
@@ -29,7 +33,7 @@ async function main() {
     },
   });
 
-  // ✅ 2. Seed Courses
+  // Seed Courses
   const course1 = await prisma.course.upsert({
     where: { course_id: "001001" },
     update: {},
@@ -41,7 +45,7 @@ async function main() {
     },
   });
 
-  // ✅ 3. Seed Students
+  // Seed Students
   const student1 = await prisma.student.upsert({
     where: { student_id: "650610759" },
     update: {},
@@ -49,16 +53,19 @@ async function main() {
       student_id: "650610759",
       student_name: "earn",
       student_email: "earn@example.com",
+      section_lec: "001",
+      section_lab: "000",
       password: "12345678",
     },
   });
 
-  // ✅ 4. Seed Attendance
+  // Seed Attendance
   await prisma.attendance.create({
     data: {
       student_id: "650610759",
       course_id: "001001",
-      section: "001",
+      section_lec: "001",
+      section_lab: "000",
       user_id: user1.id,
       date: dateOnly,
       time: thailandTime,
@@ -69,14 +76,24 @@ async function main() {
     where: {
       id: 1,
     },
-    update: {}, 
+    update: {},
     create: {
       user_id: user1.id,
       course_id: "001001",
     },
   });
-  
 
+  await prisma.user_course.upsert({
+    where: {
+      id: 2,
+    },
+    update: {},
+    create: {
+      user_id: user2.id,
+      course_id: "001001",
+    },
+  });
+  ``;
   console.log("Seeding completed!");
 }
 

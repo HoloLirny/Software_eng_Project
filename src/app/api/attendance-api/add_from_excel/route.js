@@ -34,51 +34,59 @@ export async function POST(req) {
 
     console.log("Excel Data:", data);
 
-    // Filter the students who are marked as present
-    const presentStudents = data.filter(row => row.present === 1).map(row => row.student_id);
+    // // Filter the students who are marked as present
+    // const presentStudents = data.filter(row => row.present === 1).map(row => row.student_id);
     
-    if (presentStudents.length === 0) {
-      return new Response(
-        JSON.stringify({ message: "No students marked as present." }),
-        { status: 400 }
-      );
-    }
+    // if (presentStudents.length === 0) {
+    //   return new Response(
+    //     JSON.stringify({ message: "No students marked as present." }),
+    //     { status: 400 }
+    //   );
+    // }
 
-    // Add attendance records to the database
-    const now = new Date();
-    const dateOnly = now.toISOString().split("T")[0];
-    const thailandTime = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Bangkok', hour12: false });
+    // // Add attendance records to the database
+    // const now = new Date();
+    // const dateOnly = now.toISOString().split("T")[0];
+    // const thailandTime = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Bangkok', hour12: false });
 
-    for (const student_id of presentStudents) {
-      const studentIdString = String(student_id);
-      // Check if the student exists
-      const student = await prisma.student.findUnique({ where: { student_id:studentIdString } });
-      if (!student){
-        console.log(`Student with ID ${studentIdString} not found`);
-        continue;
-      } 
-      // Check if the attendance record already exists
-      const existingAttendance = await prisma.attendance.findFirst({
-        where: { course_id, student_id: studentIdString, date: dateOnly },
-      });
-      // Add the attendance record if it doesn't exist
-      if (!existingAttendance) {
-        await prisma.attendance.create({
-          data: {
-            course_id,
-            student_id:studentIdString,
-            user_id: 1, 
-            date: dateOnly,
-            time: thailandTime,
-          },
-        });
-      }
-    }
+    // for (const student_id of presentStudents) {
+    //   const studentIdString = String(student_id);
+    //   // Check if the student exists
+    //   const student = await prisma.student.findUnique({ where: { student_id:studentIdString } });
+    //   if (!student){
+    //     console.log(`Student with ID ${studentIdString} not found`);
+    //     continue;
+    //   } 
+    //   // Check if the attendance record already exists
+    //   const existingAttendance = await prisma.attendance.findFirst({
+    //     where: { course_id, student_id: studentIdString, date: dateOnly },
+    //   });
+    //   // Add the attendance record if it doesn't exist
+    //   if (!existingAttendance) {
+    //     await prisma.attendance.create({
+    //       data: {
+    //         course_id,
+    //         student_id:studentIdString,
+    //         user_id: 1, 
+    //         date: dateOnly,
+    //         time: thailandTime,
+    //       },
+    //     });
+    //   }
+    // }
+
+    // return new Response(
+    //   JSON.stringify({
+    //     message: "Attendance records have been successfully added.",
+    //     presentStudents,
+    //   }),
+    //   { status: 201 }
+    // );
 
     return new Response(
       JSON.stringify({
         message: "Attendance records have been successfully added.",
-        presentStudents,
+        data,
       }),
       { status: 201 }
     );

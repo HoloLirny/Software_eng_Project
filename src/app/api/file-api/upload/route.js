@@ -8,6 +8,7 @@ const uploadDir = path.join(process.cwd(), "public/uploads");
 
 export async function POST(request) {
   try {
+    ////////////////////////////////////////////////////
     // Mock teacher_id for now (replace with actual session logic later)
     const teacher_id = 1; // Replace with actual logic when auth is implemented
 
@@ -33,14 +34,14 @@ export async function POST(request) {
         { status: 403 }
       );
     }
-
+    ////////////////////////////////////////////////////
+    
     // Parse the form data
     const formData = await request.formData();
     const file = formData.get("file");
     const courseId = formData.get("course_id");
-    const section = formData.get("section");
 
-    if (!file || !file.name || !courseId || !section) {
+    if (!file || !file.name || !courseId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -69,7 +70,6 @@ export async function POST(request) {
         file_name: file.name,
         file_url: `/uploads/${file.name}`,
         course_id: courseId,
-        section: section,
         uploaded_by: teacher_id,
       },
     });
