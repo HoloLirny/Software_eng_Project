@@ -1,28 +1,27 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../../prisma/prisma";
 
-// http://localhost:3000/api/file-api/get/get_by_id?course_id=001001&section=001
+// http://localhost:3000/api/file-api/get/get_by_id?course_id=001001
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get("course_id");
-    const section = searchParams.get("section");
 
-    if (!courseId || !section) {
+    if (!courseId) {
       return NextResponse.json(
-        { error: "Course ID and section are required" },
+        { error: "Course ID are required" },
         { status: 400 }
       );
     }
 
     // Fetch files by course_id
     const files = await prisma.file.findMany({
-      where: { course_id: courseId, section: section },
+      where: { course_id: courseId },
     });
 
     if (files.length === 0) {
       return NextResponse.json(
-        { message: `No files found for course_id ${courseId} of section ${section}` },
+        { message: `No files found for course_id ${courseId}` },
         { status: 404 }
       );
     }

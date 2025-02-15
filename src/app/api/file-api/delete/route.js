@@ -2,31 +2,29 @@ import { NextResponse } from "next/server";
 import prisma from "../../../../../prisma/prisma";
 import fs from "fs";
 import path from "path";
-
 // DELETE API for deleting a file by file_name and course_id
-// http://localhost:3000/api/file-api/delete?file_name=test.xlsx&course_id=001001&section=001
+// http://localhost:3000/api/file-api/delete?file_name=studentlist_261361.xlsx&course_id=001001
 export async function DELETE(req) {
   try {
     const { searchParams } = new URL(req.url);
     const fileName = searchParams.get("file_name");
     const courseId = searchParams.get("course_id");
-    const section = searchParams.get("section");
 
-    if (!fileName || !courseId || !section) {
+    if (!fileName || !courseId) {
       return NextResponse.json(
-        { error: "file_name and course_id and section are required" },
+        { error: "file_name and course_id are required" },
         { status: 400 }
       );
     }
 
     // Find the file in the database
     const file = await prisma.file.findFirst({
-      where: { file_name: fileName, course_id: courseId, section: section },
+      where: { file_name: fileName, course_id: courseId },
     });
 
     if (!file) {
       return NextResponse.json(
-        { error: `File with name ${fileName} does not exist in ${courseId} section ${section}` },
+        { error: `File with name ${fileName} does not exist in ${courseId}` },
         { status: 404 }
       );
     }
@@ -49,7 +47,7 @@ export async function DELETE(req) {
     });
 
     return NextResponse.json({
-      message: `File ${fileName} associated with course_id ${courseId} in section ${section} deleted successfully`,
+      message: `File ${fileName} associated with course_id ${courseId} deleted successfully`,
     });
   } catch (error) {
     console.error("Error deleting file:", error);
