@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import * as xlsx from "xlsx";
 
-// http://localhost:3000/api/attendance-api/add_from_excel
+// http://localhost:3000/api/attendance-api/excel_response
 export async function POST(req) {
   try {
     const { course_id, file_name } = await req.json();

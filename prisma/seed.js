@@ -55,9 +55,17 @@ async function main() {
       student_email: "earn@example.com",
       section_lec: "001",
       section_lab: "000",
-      password: "12345678",
     },
   });
+
+  // Seed Student-Course Relationship
+  await prisma.student_course.create({
+    data:{
+      student_id: "650610759", 
+      course_id: "001001"
+    }
+  })
+
 
   // Seed Attendance
   await prisma.attendance.create({
@@ -67,10 +75,17 @@ async function main() {
       section_lec: "001",
       section_lab: "000",
       user_id: user1.id,
-      date: dateOnly,
-      time: thailandTime,
     },
   });
+
+  await prisma.attendance_detail.create({
+    data:{
+      attendance_id: 1,
+      date: dateOnly,
+      time: thailandTime,
+      description: "HW1",
+    }
+  })
 
   await prisma.user_course.upsert({
     where: {
