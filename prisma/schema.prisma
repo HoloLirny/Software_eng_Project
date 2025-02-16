@@ -32,11 +32,25 @@ model student {
   student_name    String           @db.VarChar(255)
   student_id      String           @unique
   student_email   String           @unique
-  password        String
   section_lec     String
   section_lab     String
   id              Int              @id @default(autoincrement())
   attendances     attendance[]
+
+  student_course student_course[]
+}
+
+model student_course {
+  id          Int      @id @default(autoincrement())
+  student_id  String
+  course_id   String
+  student     student  @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  course      course   @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@index([course_id])
+
+  @@unique([student_id, course_id]) // This ensures student_id and course_id are unique together
 }
 
 model course {
@@ -48,6 +62,8 @@ model course {
   attendances     attendance[]
   files           file[]
   user_courses    user_course[]
+
+  student_course student_course[]
 }
 
 model file {
@@ -65,20 +81,27 @@ model file {
 }
 
 model attendance {
-  id         Int       @id @default(autoincrement())
-  student_id String
-  course_id  String
+  id          Int       @id @default(autoincrement())
+  student_id  String
+  course_id   String
   section_lec String
   section_lab String
-  user_id    Int
-  date       String?
-  time       String?
-  user      user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id     Int
+  detail_id   Int
+  user       user       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   course     course    @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
   student    student   @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  attendance_detail    attendance_detail  @relation(fields: [detail_id], references: [id], onDelete: Cascade) 
 
   @@index([course_id])
   @@index([student_id])
+}
+
+model attendance_detail{
+  id          Int       @id @default(autoincrement())
+  date        String?   @unique
+  description String?
+  attendance attendance[]
 }
 
 enum user_user_role {
