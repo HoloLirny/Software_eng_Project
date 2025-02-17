@@ -8,82 +8,108 @@ datasource db {
 }
 
 model user {
-  id             Int             @id @default(autoincrement())
-  email          String          @unique(map: "User_email_key")
-  password       String
-  user_role      user_user_role? @default(TEACHER)
+  id        Int             @id @default(autoincrement())
+  user_name String
+  email     String          @unique(map: "User_email_key")
+  password  String
+  user_role user_user_role? @default(TEACHER)
+  user_courses user_course[]
   uploaded_files file[]
-  user_courses   user_course[]
-  attendance attendance[]
+  sessions  session[]
 }
 
+
 model user_course {
-  id        Int    @id @default(autoincrement())
+  id        Int   @id @default(autoincrement())
   user_id   Int
-  course_id String
-  course    course @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
-  user      user   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  course_id Int
+  user      user   @relation(fields: [user_id], references: [id])
+  course    course @relation(fields: [course_id], references: [id])
 
   @@index([user_id])
   @@index([course_id])
 }
 
 model student {
+  id              Int              @id
+  faculty         String           @db.VarChar(255)
   student_name    String           @db.VarChar(255)
-  student_id      String           @unique
-  student_email   String           @unique
-  password        String
-  section_lec     String
-  section_lab     String
-  id              Int              @id @default(autoincrement())
   attendances     attendance[]
+  course_students course_student[]
+}
+
+model course_student {
+  id         Int     @id @default(autoincrement())
+  course_id  Int
+  student_id Int
+  course     course  @relation(fields: [course_id], references: [id])
+  student    student @relation(fields: [student_id], references: [id])
+
+  @@index([course_id])
+  @@index([student_id])
 }
 
 model course {
+  id              Int              @id
   course_name     String           @db.VarChar(255)
-  scan_time       Int?
   teacher_id      Int
-  course_id       String           @unique
-  id              Int              @id @default(autoincrement())
+  total_student   Int?
+  scan_time       Int?
   attendances     attendance[]
-  files           file[]
   user_courses    user_course[]
+  course_students course_student[]
+  files           file[]
 }
 
 model file {
-  id          Int      @id @default(autoincrement())
-  course_id   String
-  file_name   String   @db.VarChar(255)
-  file_url    String   @db.VarChar(255)
+  id        Int      @id @default(autoincrement())
+  course_id Int
   uploaded_by Int
-  upload_at   DateTime @default(now())
-  course      course   @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
-  teacher     user     @relation(fields: [uploaded_by], references: [id], onDelete: Cascade)
+  file_name String   @db.VarChar(255)
+  file_url  String   @db.VarChar(255)
+  uploaded_at DateTime @default(now())
+  
+  course    course   @relation(fields: [course_id], references: [id]) 
+  teacher     user     @relation(fields: [uploaded_by], references: [id])
 
   @@index([course_id])
   @@index([uploaded_by])
 }
 
+
 model attendance {
-  id         Int       @id @default(autoincrement())
-  student_id String
-  course_id  String
-  section_lec String
-  section_lab String
-  user_id    Int
-  date       String?
-  time       String?
-  user      user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  course     course    @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
-  student    student   @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  id         Int               @id @default(autoincrement())
+  student_id Int
+  course_id  Int
+  date       DateTime?
+  time       DateTime?
+  status     attendance_status @default(PRESENT)
+  course     course            @relation(fields: [course_id], references: [id])
+  student    student           @relation(fields: [student_id], references: [id])
 
   @@index([course_id])
   @@index([student_id])
+}
+
+model session {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  session_token String   @unique
+  expires      DateTime
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  
+  user         user     @relation(fields: [user_id], references: [id])
+}
+
+enum attendance_status {
+  PRESENT
+  ABSENT
+  LATE
 }
 
 enum user_user_role {
   ADMIN
   TEACHER
   TA
-  STUDENT
 }

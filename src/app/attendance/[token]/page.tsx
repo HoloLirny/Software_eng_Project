@@ -10,7 +10,6 @@ export default function Attendance({
 }) {
   const { token } = use(params);
   const [status, setStatus] = useState<string>("Validating...");
-  const [success, setSuccess] = useState<String>("notSuccess");
 
   useEffect(() => {
     if (token) {
@@ -25,7 +24,6 @@ export default function Attendance({
         .then((data) => {
           if (data.valid) {
             setStatus("Attendance Marked Successfully");
-            setSuccess("Success");
           } else {
             setStatus("Token Expired. Please scan a new QR code.");
           }
