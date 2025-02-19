@@ -3,28 +3,19 @@ import fs from "fs";
 import path from "path";
 import * as xlsx from "xlsx";
 
-// http://localhost:3000/api/file-api/read_file
 export async function POST(req) {
   try {
     const { file_name } = await req.json();
-    
+
     if (!file_name) {
-      return new Response(
-        JSON.stringify({ message: "file_name is required" }),
-        { status: 400 }
-      );
-    }
-    
-    // ตรวจสอบว่าไฟล์มีอยู่จริงหรือไม่
-    const filePath = path.join(process.cwd(), "public/uploads/", file_name);
-    if (!fs.existsSync(filePath)) {
-      return new Response(
-        JSON.stringify({ message: `File ${file_name} not found` }),
-        { status: 404 }
-      );
+      return new Response(JSON.stringify({ message: "file_name is required" }), { status: 400 });
     }
 
-    // อ่านไฟล์ Excel
+    const filePath = path.join(process.cwd(), "public/uploads/", file_name);
+    if (!fs.existsSync(filePath)) {
+      return new Response(JSON.stringify({ message: `File ${file_name} not found` }), { status: 404 });
+    }
+
     const fileBuffer = fs.readFileSync(filePath);
     const workbook = xlsx.read(fileBuffer, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
@@ -35,42 +26,39 @@ export async function POST(req) {
 
     rawData.forEach((row, index) => {
       if (index === 0) {
-        courseId = String(row["__EMPTY_1"] ?? ""); // 🔹 แปลงเป็น String และป้องกัน null
+        courseId = String(row["__EMPTY_1"] ?? "").trim();
       }
       if (index >= 3) {
         students.push({
-          seclec: String(row["__EMPTY"] ?? ""), 
-          seclab: String(row["__EMPTY_1"] ?? ""), 
-          student_id: String(row["__EMPTY_2"] ?? ""), 
+          seclec: String(row["__EMPTY"] ?? "").trim(),
+          seclab: String(row["__EMPTY_1"] ?? "").trim(),
+          student_id: String(row["__EMPTY_2"] ?? "").trim(),
           fullname: String(`${row["__EMPTY_3"] ?? ""} ${row["__EMPTY_4"] ?? ""}`.trim()),
+          student_email: String(row["__EMPTY_7"] ?? "").trim(),
         });
       }
     });
 
     if (!courseId) {
-      return new Response(
-        JSON.stringify({ message: "Course ID is missing in the file" }),
-        { status: 400 }
-      );
+      return new Response(JSON.stringify({ message: "Course ID is missing in the file" }), { status: 400 });
     }
 
-    // 🔹 ตรวจสอบว่าคอร์สมีอยู่หรือไม่ ถ้าไม่มีให้สร้างใหม่
+    let teacherId = 1; // ค่าเริ่มต้น หรืออาจต้องแก้ให้ดึงจากฐานข้อมูล
+
     let existingCourse = await prisma.course.findUnique({
       where: { course_id: courseId },
     });
-
-    let teacherId = 1; // 🔹 ต้องเปลี่ยนเป็นค่าอ้างอิงจริง
 
     if (!existingCourse) {
       existingCourse = await prisma.course.create({
         data: {
           course_id: courseId,
-          course_name: `Course ${courseId}`, // สามารถเปลี่ยนเป็นชื่อจริงได้
+          course_name: `Course ${courseId}`,
+          scan_time: 5,
           teacher_id: teacherId,
         },
       });
 
-      // 🔹 เพิ่ม `user_course` ให้กับอาจารย์ผู้สอน
       await prisma.user_course.create({
         data: {
           user_id: teacherId,
@@ -83,25 +71,38 @@ export async function POST(req) {
 
     for (const student of students) {
       if (student.student_id && student.fullname) {
-        // 🔹 ตรวจสอบว่านักศึกษามีอยู่หรือไม่
-        const existingStudent = await prisma.student.findUnique({
+        const newStudent = await prisma.student.upsert({
           where: { student_id: student.student_id },
+          update: {
+            student_name: student.fullname,
+            section_lec: student.seclec,
+            section_lab: student.seclab,
+            student_email: student.student_email,
+          },
+          create: {
+            student_id: student.student_id,
+            student_name: student.fullname,
+            student_email: student.student_email,
+            section_lec: student.seclec,
+            section_lab: student.seclab,
+          },
         });
 
-        if (!existingStudent) {
-          // ถ้ายังไม่มีในฐานข้อมูล ให้เพิ่มเข้าไป
-          const newStudent = await prisma.student.create({
-            data: {
+        await prisma.student_course.upsert({
+          where: {
+            student_id_course_id: {
               student_id: student.student_id,
-              student_name: student.fullname,
-              student_email: `${student.student_id}@example.com`, // เปลี่ยนเป็น email จริง
-              password: "defaultpassword", // ควรใช้การเข้ารหัสรหัสผ่าน
-              section_lec: student.seclec,
-              section_lab: student.seclab,
+              course_id: courseId,
             },
-          });
-          addedStudents.push(newStudent);
-        }
+          },
+          update: {},
+          create: {
+            student_id: student.student_id,
+            course_id: courseId,
+          },
+        });
+
+        addedStudents.push(newStudent);
       }
     }
 
@@ -113,7 +114,6 @@ export async function POST(req) {
       }),
       { status: 201 }
     );
-
   } catch (error) {
     console.error("Error processing attendance from Excel:", error);
     return new Response(
