@@ -71,6 +71,22 @@ export async function POST(req) {
       );
     }
 
+    const exist_course_student = await prisma.student_course.findFirst({
+      where: {
+        course_id: course_id,
+        student_id: student_id,
+      }
+    })
+
+    if (!exist_course_student) {
+      return new Response(
+        JSON.stringify({
+          message: `Student with ID ${student_id} didn't enroll in course ${course_id}`,
+        }),
+        { status: 404 }
+      );
+    }
+
     const { section_lab, section_lec } = student;
 
     // Check if the date exists in attendance_detail
@@ -116,7 +132,7 @@ export async function POST(req) {
         detail_id: existingDate.id,
       },
       include: {
-        attendance_detail: true, // Include attendance_detail in response
+        attendance_detail: true, 
       },
     });
 
