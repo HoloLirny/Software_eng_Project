@@ -3,16 +3,13 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/attendance-api/add
 export async function POST(req) {
   try {
-    const { course_id, student_id, section_lec, section_lab } = await req.json();
-    const now = new Date();
-    const dateOnly = now.toISOString().split("T")[0];
-    const thailandTime = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Bangkok', hour12: false });
+    const { course_id, student_id, date } = await req.json();
 
     // Validate input
-    if (!course_id || !student_id) {
+    if (!course_id || !student_id || !date) {
       return new Response(
         JSON.stringify({
-          message: "Both course_id and student_id are required",
+          message: "course_id, student_id, and date are required",
         }),
         { status: 400 }
       );
@@ -48,13 +45,13 @@ export async function POST(req) {
 
     // Check if the course exists
     const course = await prisma.course.findUnique({
-      where: { course_id: course_id }, // Use course_id as per your schema
+      where: { course_id },
     });
 
     if (!course) {
       return new Response(
         JSON.stringify({
-          message: "Course with id " + course_id + " not found",
+          message: `Course with ID ${course_id} not found`,
         }),
         { status: 404 }
       );
@@ -62,55 +59,87 @@ export async function POST(req) {
 
     // Check if the student exists
     const student = await prisma.student.findUnique({
-      where: { student_id: student_id }, // Use student_id as per your schema
+      where: { student_id },
     });
 
     if (!student) {
       return new Response(
         JSON.stringify({
-          message: "Student with id " + student_id + " didn't sign up",
+          message: `Student with ID ${student_id} didn't sign up`,
         }),
         { status: 404 }
       );
     }
 
-    // Check if the student is already check in the course that day
-    const existingAttendance = await prisma.attendance.findFirst({
+    const exist_course_student = await prisma.student_course.findFirst({
       where: {
         course_id: course_id,
-        section: section,
         student_id: student_id,
-        date: dateOnly,
+      }
+    })
+
+    if (!exist_course_student) {
+      return new Response(
+        JSON.stringify({
+          message: `Student with ID ${student_id} didn't enroll in course ${course_id}`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    const { section_lab, section_lec } = student;
+
+    // Check if the date exists in attendance_detail
+    const existingDate = await prisma.attendance_detail.findFirst({
+      where: { date },
+    });
+
+    if (!existingDate) {
+      return new Response(
+        JSON.stringify({
+          message: `${date} must be added first in attendance_detail`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    // Check if the student is already checked in for this course on the same day
+    const existingAttendance = await prisma.attendance.findFirst({
+      where: {
+        course_id,
+        student_id,
+        detail_id: existingDate.id,
       },
     });
 
     if (existingAttendance) {
       return new Response(
         JSON.stringify({
-          message: "Student with id " + student_id + " is already enrolled in course with id " + course_id + 
-          " for section " + section + " today",
+          message: `Student with ID ${student_id} has already checked in for course ${course_id} on ${date}`,
         }),
         { status: 409 }
       );
     }
-  
-    // Create an attendance record
+
+    // Create attendance record
     const attendance = await prisma.attendance.create({
       data: {
-        course_id: course_id,
-        section: section,
-        student_id: student_id,
+        course_id,
+        section_lab,
+        section_lec,
+        student_id,
         user_id: teacher_id,
-        date: dateOnly, 
-        time: thailandTime, 
+        detail_id: existingDate.id,
+      },
+      include: {
+        attendance_detail: true, 
       },
     });
 
     return new Response(
       JSON.stringify({
-        message: "Student with id " + student_id + " has been added to course with id " + course_id
-        + " for section " + section + " today",
-        attendance: attendance,
+        message: `Student with ID ${student_id} has been added to course ${course_id}`,
+        attendance,
       }),
       { status: 201 }
     );

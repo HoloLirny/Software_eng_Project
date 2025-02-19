@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../prisma/prisma";
 
-// http://localhost:3000/api/attendance-api/delete?course_id=001001&section=001
+// http://localhost:3000/api/attendance-api/delete?course_id=001001
 export async function DELETE(req) {
   try {
     const { searchParams } = new URL(req.url);
     const course_id = searchParams.get("course_id");
-    const section = searchParams.get("section");
 
-    if (!course_id || !section) {
+    if (!course_id) {
       return NextResponse.json(
-        { error: "Course ID and Section are required" },
+        { error: "Course ID is required" },
         { status: 400 }
       );
     }
@@ -50,22 +49,41 @@ export async function DELETE(req) {
       );
     }
 
+    // Find all attendance records for the given course_id
+    const attendanceRecords = await prisma.attendance.findMany({
+      where: { course_id },
+      select: { id: true },
+    });
+
+    if (attendanceRecords.length === 0) {
+      return NextResponse.json(
+        { message: `No attendance records found for course_id ${course_id}` },
+        { status: 404 }
+      );
+    }
+
+    // Extract attendance IDs
+    const attendanceIds = attendanceRecords.map((att) => att.id);
+
+    // Delete related attendance_detail first
+    await prisma.attendance_detail.deleteMany({
+      where: { attendance_id: { in: attendanceIds } },
+    });
+
+    // Delete attendance records
     const deletedAttendance = await prisma.attendance.deleteMany({
-      where: { 
-        course_id,
-        section
-      },
+      where: { course_id },
     });
 
     return NextResponse.json({
       message: `Attendance records for course_id ${course_id} deleted successfully`,
-      deletedAttendance, // Corrected variable name
+      deletedAttendance,
     });
-    
+
   } catch (error) {
     console.error("Error deleting attendance:", error);
     return NextResponse.json(
-      { error: "Error deleting attendance" },
+      { error: "Error deleting attendance", details: error.message },
       { status: 500 }
     );
   }
