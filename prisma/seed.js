@@ -66,27 +66,34 @@ async function main() {
     }
   })
 
-
-  // Seed Attendance
-  await prisma.attendance.create({
-    data: {
-      student_id: "650610759",
-      course_id: "001001",
-      section_lec: "001",
-      section_lab: "000",
-      user_id: user1.id,
-    },
-  });
-
   await prisma.attendance_detail.create({
     data:{
-      attendance_id: 1,
       date: dateOnly,
-      time: thailandTime,
       description: "HW1",
     }
   })
 
+  // Seed Attendance
+  await prisma.attendance.create({
+    data: {
+      section_lec: "001",
+      section_lab: "000",
+      user: {
+        connect: { id: user1.id },
+      },
+      course: {
+        connect: { course_id: "001001" },
+      },
+      student: {
+        connect: { student_id: "650610759" },
+      },
+      attendance_detail: {
+        connect: { id: 1 },
+      },
+    },
+  });
+
+  
   await prisma.user_course.upsert({
     where: {
       id: 1,
@@ -108,7 +115,7 @@ async function main() {
       course_id: "001001",
     },
   });
-  ``;
+
   console.log("Seeding completed!");
 }
 
