@@ -4,6 +4,7 @@ interface Token {
   expiresAt: number;
   used: boolean; // Flag for single-scan mode
   mode: "time" | "single-scan"; // QR mode
+  courseId: string;
 }
 
 let tokens: Record<string, Token> = {};
@@ -12,6 +13,7 @@ let tokens: Record<string, Token> = {};
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get("mode") || "time"; // Default to time-based mode
+  const courseId = searchParams.get("courseId") || "";
 
   const token = uuidv4();
   const expiresAt = Date.now() + 10 * 1000; // 10 seconds expiration
@@ -20,6 +22,7 @@ export async function GET(req: Request) {
     expiresAt,
     used: false,
     mode: mode as "time" | "single-scan", // "time" or "single-scan"
+    courseId,
   };
 
   const baseUrl = "http://localhost:3000/attendance";
@@ -51,7 +54,12 @@ export async function POST(req: Request) {
       // Time-based expiration
       if (now < record.expiresAt) {
         return new Response(
-          JSON.stringify({ valid: true, message: "Valid Token" }),
+          JSON.stringify({
+            valid: true,
+            message: "Valid Token",
+            courseId: record.courseId, // ✅ Include courseId in the response
+            mode: record.mode,
+          }),
           {
             headers: { "Content-Type": "application/json" },
           }
@@ -81,24 +89,12 @@ export async function POST(req: Request) {
       } else {
         record.used = true; // Mark as used
 
-        // Generate a new token
-        const newToken = uuidv4();
-        const expiresAt = Date.now() + 10 * 1000; // 10 seconds expiration
-        tokens[newToken] = {
-          expiresAt,
-          used: false,
-          mode: "single-scan",
-        };
-
-        const baseUrl = "http://localhost:3000/attendance";
-        const newUrl = `${baseUrl}/${newToken}`;
-
         return new Response(
           JSON.stringify({
             valid: true,
             message: "Token Valid",
-            newUrl,
-            newToken,
+            courseId: record.courseId, // ✅ Include courseId in the response
+            mode: record.mode,
           }),
           {
             headers: { "Content-Type": "application/json" },

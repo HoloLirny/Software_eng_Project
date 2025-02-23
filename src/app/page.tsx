@@ -16,10 +16,13 @@ export default function Home() {
   const [intervalTime, setIntervalTime] = useState<number>(5);
   const [countdownId, setCountdownId] = useState<NodeJS.Timeout | null>(null);
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [courseId, setCourseId] = useState<string>("261335");
 
   const generateQRCode = async () => {
     try {
-      const res = await fetch(`/api/generate-qr?mode=${mode}`);
+      const res = await fetch(
+        `/api/generate-qr?mode=${mode}&courseId=${courseId}`
+      );
       if (!res.ok) throw new Error("Failed to fetch QR code");
 
       const data: { url: string; token: string; used: boolean } =
@@ -162,6 +165,19 @@ export default function Home() {
           style={{ color: "black", marginLeft: "10px", padding: "5px" }}
         />
         sec
+      </div>
+      <div style={{ marginTop: "20px" }}>
+        <label htmlFor="courseId">
+          <strong>Course ID:</strong>
+        </label>
+        <input
+          type="text"
+          id="courseId"
+          value={courseId}
+          onChange={(e) => setCourseId(e.target.value)}
+          maxLength={6}
+          style={{ color: "black", marginLeft: "10px", padding: "5px" }}
+        />
       </div>
       <div>
         <button
