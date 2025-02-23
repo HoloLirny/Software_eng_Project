@@ -1,3 +1,4 @@
+//FIXME: change responsive of the page
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,6 +28,7 @@ import Grid from '@mui/material/Grid2';
 
 function Page({ course_id, pages, setPages }) {
    console.log(pages)
+   console.log(course_id)
     const router = useRouter(); 
     const [openAddTA, setOpenAddTA] = useState(false);
     const [taList, setTaList] = useState([]);
@@ -60,8 +62,7 @@ function Page({ course_id, pages, setPages }) {
     }
 
     const handleAddTA = async () => {
-        {/*TODO: change course_id when login is work*/}
-        const newTA = {course_id: "001001", email: email, password: initialPassword };
+        const newTA = {course_id: course_id, email: email, password: initialPassword };
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/ta-api/add`, {
                 method: "POST",
@@ -166,7 +167,7 @@ function Page({ course_id, pages, setPages }) {
         const formData = new FormData();
         // FIXME: Change course_id and section to the actual course_id and section
         formData.append("file", file); // Append the file
-        formData.append("course_id", "001001"); // Append the course_id
+        formData.append("course_id", course_id); // Append the course_id
         formData.append("section", "001")
 
         try {
