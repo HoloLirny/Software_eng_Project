@@ -22,7 +22,6 @@ function Page() {
   const [students, setStudents] = useState(initStudents);
 
   const handleAddColumn = () => {
-
     setColumns([...columns, { id: columns.length + 1, label: "23/2/68" }]);
   };
 
