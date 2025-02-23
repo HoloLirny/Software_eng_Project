@@ -124,7 +124,7 @@ export default function Home() {
 
       {/* For Testing Monitor. Will be hidden in Production */}
       <p>
-        <strong>URL:</strong> {url || "Generating..."}
+         {url || "Generating..."}
       </p>
       <p>
         <strong>Token:</strong> {token || "Generating..."}
