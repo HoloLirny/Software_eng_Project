@@ -8,12 +8,14 @@ Set up to Start Project
 
 
 Note : 23-2-2568 edit password to be password
-1. docker exec -it project_se_t12-postgres-1 psql -U user -d mydb
+0. docker ps  // to find container name
+1. docker exec -it <container name> psql -U user -d mydb
 2. ALTER USER "user" WITH PASSWORD 'password';
     after run the 2. it should be ans ALTER ROLE 
 3. \q
 4. docker-compose down
 5. docker-compose up -d
+6. npx prisma migrate reset   // to run seed
 
 
 
