@@ -56,53 +56,73 @@ async function main() {
     },
   });
 
-  // // Seed Students
-  // const student1 = await prisma.student.upsert({
-  //   where: { student_id: "650610759" },
-  //   update: {},
-  //   create: {
-  //     student_id: "650610759",
-  //     student_name: "earn",
-  //     student_email: "earn@example.com",
-  //     section_lec: "001",
-  //     section_lab: "000",
-  //   },
-  // });
+  // Seed Students
+  const student1 = await prisma.student.upsert({
+    where: { student_id: "650610759" },
+    update: {},
+    create: {
+      student_id: "650610759",
+      student_name: "earn",
+      student_email: "earn@example.com",
+      section_lec: "001",
+      section_lab: "000",
+    },
+  });
 
-  // // Seed Student-Course Relationship
-  // await prisma.student_course.create({
-  //   data:{
-  //     student_id: "650610759", 
-  //     course_id: "261361"
-  //   }
-  // })
+  const student2 = await prisma.student.upsert({
+    where: { student_id: "650610760" },
+    update: {},
+    create: {
+      student_id: "650610760",
+      student_name: "night",
+      student_email: "night@example.com",
+      section_lec: "001",
+      section_lab: "000",
+    },
+  });
 
-  // await prisma.attendance_detail.create({
-  //   data:{
-  //     date: dateOnly,
-  //     description: "HW1",
-  //   }
-  // })
+  // Seed Student-Course Relationship
+  await prisma.student_course.create({
+    data:{
+      student_id: "650610759", 
+      course_id: "261361"
+    }
+  })
 
-  // // Seed Attendance
-  // await prisma.attendance.create({
-  //   data: {
-  //     section_lec: "001",
-  //     section_lab: "000",
-  //     user: {
-  //       connect: { id: user1.id },
-  //     },
-  //     course: {
-  //       connect: { course_id: "261361" },
-  //     },
-  //     student: {
-  //       connect: { student_id: "650610759" },
-  //     },
-  //     attendance_detail: {
-  //       connect: { id: 1 },
-  //     },
-  //   },
-  // });
+  await prisma.student_course.create({
+    data:{
+      student_id: "650610760", 
+      course_id: "261361"
+    }
+  })
+
+  await prisma.attendance_detail.create({
+    data:{
+      date: dateOnly,
+      description: "HW1",
+      course_id: "261361"
+    }
+  })
+
+  // Seed Attendance
+  await prisma.attendance.create({
+    data: {
+      section_lec: "001",
+      section_lab: "000",
+      user: {
+        connect: { id: user1.id },
+      },
+      course: {
+        connect: { course_id: "261361" },
+      },
+      student: {
+        connect: { student_id: "650610759" },
+      },
+      attendance_detail: {
+        connect: { id: 1 },
+      },
+    },
+  });
 
   await prisma.file.create({
     data:{
