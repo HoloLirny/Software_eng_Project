@@ -62,8 +62,8 @@ model course {
   attendances     attendance[]
   files           file[]
   user_courses    user_course[]
-
   student_course student_course[]
+  attendance_detail attendance_detail[]
 }
 
 model file {
@@ -100,7 +100,9 @@ model attendance {
 model attendance_detail{
   id          Int       @id @default(autoincrement())
   date        String?   @unique
+  course_id   String    
   description String?
+  course      course    @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
   attendance attendance[]
 }
 
