@@ -22,27 +22,18 @@ export async function GET(request) {
     });
 
     if (!existingCourse) {
-      return NextResponse.json(
-        { error: "Course not found" },
-        { status: 404 }
-      );
+      return new Response(JSON.stringify({ error: "Course not found" }), {
+        status: 404,
+      });
     }
 
-    const attendance = await prisma.attendance.findMany({
+    const attendance_detail = await prisma.attendance_detail.findMany({
       where: {
         course_id: courseId,
-      },
-      select: {
-        attendance_detail: true, // ดึง attendance_detail ทั้ง object
-      },
+      }
     });
 
-    // ตรวจสอบว่า attendance_detail เป็น array หรือ object แล้วดึง date
-    const dates = attendance
-      .map(item => item.attendance_detail?.date) // เข้าถึง date โดยตรง
-      .filter(date => date !== undefined); // กรองค่า undefined ออก
-
-    return NextResponse.json(dates);
+    return NextResponse.json(attendance_detail);
   } catch (error) {
     console.error("Error fetching attendance:", error);
     return NextResponse.json(
