@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-
 interface Token {
   expiresAt: number;
   used: boolean; // Flag for single-scan mode
@@ -16,7 +15,8 @@ export async function GET(req: Request) {
   const courseId = searchParams.get("courseId") || "";
 
   const token = uuidv4();
-  const expiresAt = Date.now() + 10 * 1000; // 10 seconds expiration
+  const expireTime = Number(searchParams.get("expireTime")) || 10; // Default to 10 seconds if null
+  const expiresAt = Date.now() + expireTime * 1000; // 10 seconds expiration
 
   tokens[token] = {
     expiresAt,
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     courseId,
   };
 
-  const baseUrl = "http://localhost:3000/attendance";
+  const baseUrl = `http://${process.env.NEXT_PUBLIC_BACKEND}:3000/attendance`;
   const url = `${baseUrl}/${token}`; // For testing
 
   return new Response(JSON.stringify({ url, token }), {
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
           }
         );
       }
-    } else if (record.mode === "single-scan") {
+    }  else if (record.mode === "single-scan") {
       // Single-scan mode
       if (record.used) {
         return new Response(
