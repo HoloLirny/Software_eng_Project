@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import HomeIcon from '@mui/icons-material/Home';
 import Grid from '@mui/material/Grid2';
 import '@fontsource/prompt';
+import QRCode from "qrcode";
 
 function page() {
     const courseid = 261336;
@@ -14,8 +15,41 @@ function page() {
         { id: '650610114', name: 'จารุวรรณ ขยันทำงาน' },
       ];
     const initialTime = 5 * 60; // 5 minutes in seconds
-
+    const [qrCode, setQrCode] = useState<string>("");
+    const [token, setToken] = useState<string>("");
+    const [url, setUrl] = useState<string>("");
+    const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
+    const [mode, setMode] = useState<"time" | "single-scan">("time");
+    const [isTokenUsed, setIsTokenUsed] = useState<boolean>(false);
+    const [timeLimitMinutes, setTimeLimitMinutes] = useState<number>(0);
+    const [timeLimitSeconds, setTimeLimitSeconds] = useState<number>(30);
+    const [remainingTime, setRemainingTime] = useState<number>(0);
+    const [intervalTime, setIntervalTime] = useState<number>(5);
+    const [countdownId, setCountdownId] = useState<NodeJS.Timeout | null>(null);
+    const [isRunning, setIsRunning] = useState<boolean>(false);
+    const [courseId, setCourseId] = useState<string>("261335");
     const [time, setTime] = useState(initialTime);
+
+    const generateQRCode = async () => {
+        try {
+          const res = await fetch(
+            `/api/generate-qr?mode=${mode}&courseId=${courseId}`
+          );
+          if (!res.ok) throw new Error("Failed to fetch QR code");
+    
+          const data: { url: string; token: string; used: boolean } =
+            await res.json();
+          setToken(data.token);
+          setUrl(data.url);
+          setIsTokenUsed(data.used);
+    
+          const qr = await QRCode.toDataURL(data.url);
+          setQrCode(qr);
+        } catch (error) {
+          console.error("QR Code Generation Error:", error);
+          setQrCode("");
+        }
+      };
 
     useEffect(() => {
         if (time <= 0) return;
@@ -45,7 +79,7 @@ function page() {
                             {courseid}
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <img src="/icon.png" alt="icon" style={{ width: {xs:'40px',sm:'45px'}, height: '60px' }} />
+                            <img src={qrCode} alt="icon" style={{ width: {xs:'40px',sm:'45px'}, height: '60px' }} />
                         </Box>
                     </Box>
                 </Box>

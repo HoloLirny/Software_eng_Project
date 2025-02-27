@@ -14,6 +14,7 @@ export default function Home() {
   const [timeLimitSeconds, setTimeLimitSeconds] = useState<number>(30);
   const [remainingTime, setRemainingTime] = useState<number>(0);
   const [intervalTime, setIntervalTime] = useState<number>(5);
+  const [expireTime, setExpireTime] = useState<number>(5);
   const [countdownId, setCountdownId] = useState<NodeJS.Timeout | null>(null);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [courseId, setCourseId] = useState<string>("261335");
@@ -21,12 +22,12 @@ export default function Home() {
   const generateQRCode = async () => {
     try {
       const res = await fetch(
-        `/api/generate-qr?mode=${mode}&courseId=${courseId}`
+        `/api/generate-qr?mode=${mode}&courseId=${courseId}&expireTime=${expireTime}`
       );
       if (!res.ok) throw new Error("Failed to fetch QR code");
 
-      const data: { url: string; token: string; used: boolean } =
-        await res.json();
+      const data: { url: string; token: string; used: boolean } = await res.json();
+      console.log("data:", data)
       setToken(data.token);
       setUrl(data.url);
       setIsTokenUsed(data.used);
@@ -144,6 +145,17 @@ export default function Home() {
           id="interval"
           value={intervalTime}
           onChange={(e) => setIntervalTime(Number(e.target.value))}
+          style={{ color: "black", marginLeft: "10px", padding: "5px" }}
+          disabled={mode === "single-scan"}
+        />
+        <label htmlFor="interval">
+          <strong>Expiration time live (seconds):</strong>
+        </label>
+        <input
+          type="number"
+          id="expireTime"
+          value={expireTime}
+          onChange={(e) => setExpireTime(Number(e.target.value))}
           style={{ color: "black", marginLeft: "10px", padding: "5px" }}
           disabled={mode === "single-scan"}
         />
