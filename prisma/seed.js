@@ -104,6 +104,15 @@ async function main() {
   //   },
   // });
 
+  await prisma.file.create({
+    data:{
+      file_name: "studentlist_261361.xlsx",
+      file_url: "/uploads/studentlist_261361.xlsx",
+      uploaded_by: user1.id,
+      course_id: "261361"
+    }
+  })
+
   
   await prisma.user_course.upsert({
     where: {
