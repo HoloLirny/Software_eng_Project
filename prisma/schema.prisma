@@ -10,11 +10,12 @@ datasource db {
 model user {
   id             Int             @id @default(autoincrement())
   email          String          @unique(map: "User_email_key")
-  password       String
+  password       String?
   user_role      user_user_role? @default(TEACHER)
   uploaded_files file[]
   user_courses   user_course[]
-  attendance attendance[]
+  attendance     attendance[]
+  student        student?         @relation
 }
 
 model user_course {
@@ -32,12 +33,13 @@ model student {
   student_name    String           @db.VarChar(255)
   student_id      String           @unique
   student_email   String           @unique
-  section_lec     String
-  section_lab     String
+  section_lec     String?
+  section_lab     String?
   id              Int              @id @default(autoincrement())
   attendances     attendance[]
-
   student_course student_course[]
+  user_id         Int      @unique    // Add user_id field to reference the user model
+  user            user     @relation(fields: [user_id], references: [id], onDelete: Cascade) // Link to user via user_id
 }
 
 model student_course {

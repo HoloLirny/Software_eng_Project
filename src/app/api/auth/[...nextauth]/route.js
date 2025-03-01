@@ -49,7 +49,7 @@ export const handler = NextAuth({
         token.id = user.id;
         token.user_name = user.user_name;
         token.email = user.email;
-        token.role = user.user_role; 
+        token.role = user.user_role;
       }
       return token;
     },
@@ -58,7 +58,7 @@ export const handler = NextAuth({
         id: token.id,
         user_name: token.user_name,
         email: token.email,
-        role: token.role, 
+        role: token.role,
       };
       return session;
     },
