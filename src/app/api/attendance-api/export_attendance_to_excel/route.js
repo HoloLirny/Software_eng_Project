@@ -79,7 +79,7 @@ export async function GET(req) {
             a.attendance_detail?.date === date
         );
 
-        row[dateDesc] = attendanceForDate ? "มาเรียน" : "ขาดเรียน";
+        row[dateDesc] = attendanceForDate ? "1" : "0";
       });
 
       return row;
