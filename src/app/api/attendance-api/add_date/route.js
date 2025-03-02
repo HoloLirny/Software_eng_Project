@@ -1,5 +1,5 @@
 import prisma from "../../../../../prisma/prisma";
-
+// http://localhost:3000/api/attendance-api/add_date
 export async function POST(req) {
   try {
     const { description, date, course_id } = await req.json();
