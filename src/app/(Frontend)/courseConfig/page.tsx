@@ -95,8 +95,7 @@ function Page({ course_id, pages, setPages }) {
 
     function validateEmail (email: string) {
         const cmuRegex = /^[a-zA-Z0-9._%+-]+@cmu.ac.th$/;
-        const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail.com$/;
-        return cmuRegex.test(email) || gmailRegex.test(email);
+        return cmuRegex.test(email);
     }
 
     const confirmDeleteTA = (index: number) => {
