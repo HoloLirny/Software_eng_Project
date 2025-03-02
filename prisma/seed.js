@@ -22,6 +22,17 @@ async function main() {
     },
   });
 
+  // Seed admin
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@example.com" },
+    update: {},
+    create: {
+      email: "admin@example.com",
+      password: "12345678",
+      user_role: "ADMIN",
+    },
+  });
+
   // Seed TA
   const user2 = await prisma.user.upsert({
     where: { email: "ta@example.com" },
@@ -35,13 +46,13 @@ async function main() {
 
   // Seed Courses
   const course1 = await prisma.course.upsert({
-    where: { course_id: "001001" },
+    where: { course_id: "261361" },
     update: {},
     create: {
-      course_name: "eng1",
-      scan_time: 60,
+      course_name: "Network",
+      scan_time: 5,
       teacher_id: user1.id,
-      course_id: "001001",
+      course_id: "261361",
     },
   });
 
@@ -58,11 +69,30 @@ async function main() {
     },
   });
 
+  const student2 = await prisma.student.upsert({
+    where: { student_id: "650610760" },
+    update: {},
+    create: {
+      student_id: "650610760",
+      student_name: "night",
+      student_email: "night@example.com",
+      section_lec: "001",
+      section_lab: "000",
+    },
+  });
+
   // Seed Student-Course Relationship
   await prisma.student_course.create({
     data:{
       student_id: "650610759", 
-      course_id: "001001"
+      course_id: "261361"
+    }
+  })
+
+  await prisma.student_course.create({
+    data:{
+      student_id: "650610760", 
+      course_id: "261361"
     }
   })
 
@@ -70,6 +100,7 @@ async function main() {
     data:{
       date: dateOnly,
       description: "HW1",
+      course_id: "261361"
     }
   })
 
@@ -82,7 +113,7 @@ async function main() {
         connect: { id: user1.id },
       },
       course: {
-        connect: { course_id: "001001" },
+        connect: { course_id: "261361" },
       },
       student: {
         connect: { student_id: "650610759" },
@@ -93,6 +124,15 @@ async function main() {
     },
   });
 
+  await prisma.file.create({
+    data:{
+      file_name: "studentlist_261361.xlsx",
+      file_url: "/uploads/studentlist_261361.xlsx",
+      uploaded_by: user1.id,
+      course_id: "261361"
+    }
+  })
+
   
   await prisma.user_course.upsert({
     where: {
@@ -101,7 +141,7 @@ async function main() {
     update: {},
     create: {
       user_id: user1.id,
-      course_id: "001001",
+      course_id: "261361",
     },
   });
 
@@ -112,7 +152,7 @@ async function main() {
     update: {},
     create: {
       user_id: user2.id,
-      course_id: "001001",
+      course_id: "261361",
     },
   });
 
