@@ -57,41 +57,41 @@ async function main() {
   });
 
   // Seed Students
-  // const student1 = await prisma.student.upsert({
-  //   where: { student_id: "650610759" },
-  //   update: {},
-  //   create: {
-  //     student_id: "650610759",
-  //     student_name: "earn",
-  //     student_email: "earn@example.com",
-  //     section_lec: "001",
-  //     section_lab: "000",
-  //   },
-  // });
+  const student1 = await prisma.student.upsert({
+    where: { student_id: "650610001" },
+    update: {},
+    create: {
+      student_id: "650610001",
+      student_name: "earn",
+      student_email: "earn@example.com",
+      section_lec: "001",
+      section_lab: "000",
+    },
+  });
 
-  // const student2 = await prisma.student.upsert({
-  //   where: { student_id: "650610760" },
-  //   update: {},
-  //   create: {
-  //     student_id: "650610760",
-  //     student_name: "night",
-  //     student_email: "night@example.com",
-  //     section_lec: "001",
-  //     section_lab: "000",
-  //   },
-  // });
+  const student2 = await prisma.student.upsert({
+    where: { student_id: "650610000" },
+    update: {},
+    create: {
+      student_id: "650610000",
+      student_name: "night",
+      student_email: "night@example.com",
+      section_lec: "001",
+      section_lab: "000",
+    },
+  });
 
   // Seed Student-Course Relationship
   await prisma.student_course.create({
     data: {
-      student_id: "650610759",
+      student_id: "650610000",
       course_id: "261361",
     },
   });
 
   await prisma.student_course.create({
     data: {
-      student_id: "650610760",
+      student_id: "650610001",
       course_id: "261361",
     },
   });
@@ -116,7 +116,7 @@ async function main() {
         connect: { course_id: "261361" },
       },
       student: {
-        connect: { student_id: "650610759" },
+        connect: { student_id: "650610000" },
       },
       attendance_detail: {
         connect: { id: 1 },
