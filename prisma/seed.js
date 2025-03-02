@@ -4,12 +4,12 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log("Seeding database...");
-  const now = new Date();
-  const dateOnly = now.toISOString().split("T")[0];
-  const thailandTime = now.toLocaleTimeString("en-US", {
-    timeZone: "Asia/Bangkok",
-    hour12: false,
-  });
+  // const now = new Date();
+  // const dateOnly = now.toISOString().split("T")[0];
+  // const thailandTime = now.toLocaleTimeString("en-US", {
+  //   timeZone: "Asia/Bangkok",
+  //   hour12: false,
+  // });
 
   // Seed Users
   const user1 = await prisma.user.upsert({
@@ -83,26 +83,26 @@ async function main() {
 
   // Seed Student-Course Relationship
   await prisma.student_course.create({
-    data:{
-      student_id: "650610759", 
-      course_id: "261361"
-    }
-  })
+    data: {
+      student_id: "650610759",
+      course_id: "261361",
+    },
+  });
 
   await prisma.student_course.create({
-    data:{
-      student_id: "650610760", 
-      course_id: "261361"
-    }
-  })
+    data: {
+      student_id: "650610760",
+      course_id: "261361",
+    },
+  });
 
   await prisma.attendance_detail.create({
-    data:{
-      date: dateOnly,
+    data: {
+      date: "23-01-2025",
       description: "HW1",
-      course_id: "261361"
-    }
-  })
+      course_id: "261361",
+    },
+  });
 
   // Seed Attendance
   await prisma.attendance.create({
@@ -125,15 +125,14 @@ async function main() {
   });
 
   await prisma.file.create({
-    data:{
+    data: {
       file_name: "studentlist_261361.xlsx",
       file_url: "/uploads/studentlist_261361.xlsx",
       uploaded_by: user1.id,
-      course_id: "261361"
-    }
-  })
+      course_id: "261361",
+    },
+  });
 
-  
   await prisma.user_course.upsert({
     where: {
       id: 1,
