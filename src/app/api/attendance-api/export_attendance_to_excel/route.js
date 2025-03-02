@@ -10,7 +10,8 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get("course_id");
-
+    const teacher_id = 1;
+    
     if (!courseId) {
       return NextResponse.json(
         { message: "course_id is required" },
@@ -113,9 +114,37 @@ export async function GET(req) {
 
     await fs.promises.writeFile(filePath, excelBuffer);
 
+    const existingFile = await prisma.file.findFirst({
+      where: {
+        file_name: fileName,
+        course_id: courseId,
+      },
+    });
+    
+    if (existingFile) {
+      const updatedFile = await prisma.file.update({
+        where: { id: existingFile.id },
+        data: {
+          file_url: `/public/uploads/${fileName}`,
+          uploaded_by: teacher_id,
+        },
+      });
+      console.log("File updated:", updatedFile);
+    } else {
+      const savedFile = await prisma.file.create({
+        data: {
+          file_name: fileName,
+          file_url: `/public/uploads/${fileName}`,
+          course_id: courseId,
+          uploaded_by: teacher_id,
+        },
+      });
+      console.log("File uploaded successfully:", savedFile);
+    }
+    
     return NextResponse.json({
       message: "File saved successfully",
-      fileUrl: `/uploads/${fileName}`,
+      fileUrl: `/public/uploads/${fileName}`,
     });
   } catch (error) {
     console.error("Error exporting attendance data", error);
