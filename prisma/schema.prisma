@@ -15,7 +15,6 @@ model user {
   uploaded_files file[]
   user_courses   user_course[]
   attendance     attendance[]
-  student        student?         @relation
 }
 
 model user_course {
@@ -38,8 +37,6 @@ model student {
   id              Int              @id @default(autoincrement())
   attendances     attendance[]
   student_course student_course[]
-  user_id         Int?      @unique    // Add user_id field to reference the user model
-  user            user?     @relation(fields: [user_id], references: [id], onDelete: Cascade) // Link to user via user_id
 }
 
 model student_course {
@@ -52,7 +49,7 @@ model student_course {
   @@index([student_id])
   @@index([course_id])
 
-  @@unique([student_id, course_id]) // This ensures student_id and course_id are unique together
+  @@unique([student_id, course_id]) 
 }
 
 model course {
