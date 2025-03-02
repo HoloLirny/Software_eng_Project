@@ -22,6 +22,7 @@ import axios from 'axios';
 import './style.css';
 import CourseConfig from '../courseConfig/page'
 import { useAuthStore } from "@/app/store/useAuthStore";
+import Attendance from '../attendance/page'
 
 interface Course {
     course_id : number;
@@ -34,7 +35,7 @@ interface Course {
 
 function Page() {
     const res = useAuthStore((state) => state.user);
-    const user = res.cmuBasicInfo[0];
+    const user = res.cmuBasicInfo[0] ;
     // const studentRole = user.itaccounttype_EN === "Student Account";
     const studentRole = false;
 
@@ -315,12 +316,17 @@ function Page() {
 
       }
 
+    useEffect(() => {
+        console.log("page",pages)
+    },[pages]);
 
     return (
         <>
         {pages == "courseconfig" 
         ? (
             <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages}/>
+        ): pages == "attendance" ? (
+             <Attendance course_id={selectcourseconfig} pages={pages} setPages={setPages }/>
         ):( 
         <Box
             sx={{

@@ -23,6 +23,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import SettingsIcon from '@mui/icons-material/Settings';
 import CloseIcon from '@mui/icons-material/Close';
+import QRgen from '../qrgen/page'
 
 function Page({ course_id = "261361", pages, setPages }) {
   const [columns, setColumns] = useState([]);
@@ -37,6 +38,7 @@ function Page({ course_id = "261361", pages, setPages }) {
   const [qrConfigModalOpen, setQrConfigModalOpen] = useState(false);
   const [inputActiveTime, setInputActiveTime] = useState(10);
   const [inputRefreshTime, setInputRefreshTime] = useState(5);
+  const [page,setPage] = useState("attendance");
   const [time, setTime] = useState(60 * 10); // 10 minutes
   const [mode, setMode] = useState("time");
   const [expireTime, setExpireTime] = useState(5) // 5 seconds
@@ -198,7 +200,7 @@ function Page({ course_id = "261361", pages, setPages }) {
 
   return (
     <>
-      {
+      {page== "attendance" ?
       (<Box
         sx={{
           minHeight: "100vh",
@@ -211,7 +213,7 @@ function Page({ course_id = "261361", pages, setPages }) {
           overflowX: "auto",
         }}
       >
-
+        <Button onClick={() => setPage("qrGen")}>QR Gen</Button>
       <Button
         onClick={() => setPages("courseconfig")}
         sx={{
@@ -496,7 +498,9 @@ function Page({ course_id = "261361", pages, setPages }) {
         </Box>
       </Modal>
 
-      </Box>)
+      </Box>):(
+        <QRgen time={200} mode={'time'} expireTime={1} courseId={"261336"}/>
+      )
       }
     </>
 

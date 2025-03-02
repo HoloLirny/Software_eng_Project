@@ -8,11 +8,11 @@ import QRCode from "qrcode";
 import Image from 'next/image';
 import iconimg from '../../../../public/icon.png';
 
-function Page() {
-    const time = 200;
-    const mode = 'time';
-    const expireTime = 1;
-    const courseId = '261335';
+function Page(time,mode,expireTime,courseId) {
+    // const time = 200;
+    // const mode = 'time';
+    // const expireTime = 1;
+    // const courseId = '261335';
 
     const studentData = [
         { id: '650610111', name: 'สมชาย ใจดี' },
@@ -79,7 +79,7 @@ function Page() {
         <Box sx={{ bgcolor: 'white', minHeight: "100vh" }}>
             <Box sx={{ height: '135px', bgcolor: '#BF48DD', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%', px: 4 }}>
-                    <HomeIcon onClick= sx={{ fontSize: { xs: 40, sm: 45, lg: 50 } }} />
+                    <HomeIcon sx={{ fontSize: { xs: 40, sm: 45, lg: 50 } }} />
                     <Typography fontWeight='bold' sx={{ fontSize: { xs: 36, sm: 46 } }}>
                         {courseId}
                     </Typography>
