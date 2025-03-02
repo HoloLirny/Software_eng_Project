@@ -21,7 +21,7 @@ export default function cmuEntraIDCallback() {
       .post<SignInResponse>("../api/signIn", { authorizationCode: code })
       .then((resp) => {
         if (resp.data.ok) {
-          router.push("../profile");
+          router.push("../course");
         }
       })
       .catch((error: AxiosError<SignInResponse>) => {

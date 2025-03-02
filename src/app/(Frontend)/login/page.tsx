@@ -4,8 +4,10 @@ import '@fontsource/prompt';
 import logo from '../../../../public/icon.png';
 import logoele from '../../../../public/logoele.png';
 import Image from "next/image";
+import Link from 'next/link';
 
 function Page() {
+  const CmuentraidURL = process.env.CMU_ENTRAID_URL as string;
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#8F16AD', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <Grid container spacing={2} justifyContent="center">
@@ -24,6 +26,7 @@ function Page() {
 
                 {/* Login Button with LogoEle Icon */}
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Link href={`${CmuentraidURL}`}>
                   <Button
                     variant="contained"
                     sx={{ bgcolor: '#BF48DD', display: 'flex', alignItems: 'center', gap: 1, padding: '8px 16px' }}
@@ -40,6 +43,7 @@ function Page() {
                       Login with CMU account
                     </Typography>
                   </Button>
+                  </Link>
                 </Box>
               </Box>
             </Card>

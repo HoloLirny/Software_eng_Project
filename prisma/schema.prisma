@@ -38,8 +38,8 @@ model student {
   id              Int              @id @default(autoincrement())
   attendances     attendance[]
   student_course student_course[]
-  user_id         Int      @unique    // Add user_id field to reference the user model
-  user            user     @relation(fields: [user_id], references: [id], onDelete: Cascade) // Link to user via user_id
+  user_id         Int?      @unique    // Add user_id field to reference the user model
+  user            user?     @relation(fields: [user_id], references: [id], onDelete: Cascade) // Link to user via user_id
 }
 
 model student_course {

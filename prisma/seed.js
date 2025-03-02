@@ -57,44 +57,44 @@ async function main() {
   });
 
   // Seed Students
-  const student1 = await prisma.student.upsert({
-    where: { student_id: "650610759" },
-    update: {},
-    create: {
-      student_id: "650610759",
-      student_name: "earn",
-      student_email: "earn@example.com",
-      section_lec: "001",
-      section_lab: "000",
-    },
-  });
+  // const student1 = await prisma.student.upsert({
+  //   where: { student_id: "650610759" },
+  //   update: {},
+  //   create: {
+  //     student_id: "650610759",
+  //     student_name: "earn",
+  //     student_email: "earn@example.com",
+  //     section_lec: "001",
+  //     section_lab: "000",
+  //   },
+  // });
 
-  const student2 = await prisma.student.upsert({
-    where: { student_id: "650610760" },
-    update: {},
-    create: {
-      student_id: "650610760",
-      student_name: "night",
-      student_email: "night@example.com",
-      section_lec: "001",
-      section_lab: "000",
-    },
-  });
+  // const student2 = await prisma.student.upsert({
+  //   where: { student_id: "650610760" },
+  //   update: {},
+  //   create: {
+  //     student_id: "650610760",
+  //     student_name: "night",
+  //     student_email: "night@example.com",
+  //     section_lec: "001",
+  //     section_lab: "000",
+  //   },
+  // });
 
-  // Seed Student-Course Relationship
-  await prisma.student_course.create({
-    data:{
-      student_id: "650610759", 
-      course_id: "261361"
-    }
-  })
+  // // Seed Student-Course Relationship
+  // await prisma.student_course.create({
+  //   data:{
+  //     student_id: "650610759", 
+  //     course_id: "261361"
+  //   }
+  // })
 
-  await prisma.student_course.create({
-    data:{
-      student_id: "650610760", 
-      course_id: "261361"
-    }
-  })
+  // await prisma.student_course.create({
+  //   data:{
+  //     student_id: "650610760", 
+  //     course_id: "261361"
+  //   }
+  // })
 
   await prisma.attendance_detail.create({
     data:{

@@ -177,7 +177,7 @@ export async function POST(
       // organization_name_EN: cmuBasicInfo.organization_name_EN,
       // itaccounttype_id: cmuBasicInfo.itaccounttype_id,
       // itaccounttype_TH: cmuBasicInfo.itaccounttype_TH,
-      // itaccounttype_EN: cmuBasicInfo.itaccounttype_EN, //Note that not everyone has this. Teachers and CMU Staffs don't have student id!
+      itaccounttype_EN: cmuBasicInfo.itaccounttype_EN, //Note that not everyone has this. Teachers and CMU Staffs don't have student id!
     },
     process.env.JWT_SECRET,
     {
