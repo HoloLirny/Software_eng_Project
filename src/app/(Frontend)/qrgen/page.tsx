@@ -79,7 +79,7 @@ function Page() {
         <Box sx={{ bgcolor: 'white', minHeight: "100vh" }}>
             <Box sx={{ height: '135px', bgcolor: '#BF48DD', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%', px: 4 }}>
-                    <HomeIcon sx={{ fontSize: { xs: 40, sm: 45, lg: 50 } }} />
+                    <HomeIcon onClick= sx={{ fontSize: { xs: 40, sm: 45, lg: 50 } }} />
                     <Typography fontWeight='bold' sx={{ fontSize: { xs: 36, sm: 46 } }}>
                         {courseId}
                     </Typography>
