@@ -1,118 +1,53 @@
-import { Box, Button, Card, Container, SvgIcon, TextField, Typography } from '@mui/material'
-import React from 'react'
-import Grid from '@mui/material/Grid2'
+import { Box, Button, Card, Typography } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import '@fontsource/prompt'; 
-import Login from './login'
+import logo from '../../../../public/icon.png';
+import logoele from '../../../../public/logoele.png';
+import Image from "next/image";
 
-function page() {
+function Page() {
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#8F16AD',alignContent:'center' }}>
-    <Grid container spacing={2}>
-        <Grid size={{xs:12,sm:12,md:12,lg:6}}>
-            <Typography variant="h4" sx={{ fontFamily: 'Prompt', color: 'white', margin: 5 ,ml:10 }}>
-                Logo Here
-            </Typography>
-          
+    <Box sx={{ minHeight: '100vh', bgcolor: '#8F16AD', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Grid container spacing={2} justifyContent="center">
+        <Grid size={12}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Card sx={{ margin: 0, borderRadius: 4, width: '100%', maxWidth: '500px', textAlign: 'center' }}>
+              <Box sx={{ margin: 4 }}>
+                {/* Title */}
+                <Typography variant="h5" sx={{ fontFamily: 'Prompt', fontWeight: 'bold',color:'#8F16AD' }}>
+                  Checkchue
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center',padding:2}}>
+                    <Image src={logo} alt="Logo" width={200} height={200} priority />
+                </Box>
+                
+
+                {/* Login Button with LogoEle Icon */}
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Button
+                    variant="contained"
+                    sx={{ bgcolor: '#BF48DD', display: 'flex', alignItems: 'center', gap: 1, padding: '8px 16px' }}
+                  >
+                    <Image src={logoele} alt="LogoEle" width={30} height={30} priority />
+                    <Typography
+                      sx={{
+                        fontSize: {xs: 14, sm: 16 ,md: 18},
+                        fontFamily: 'Prompt',
+                        fontWeight: 'medium',
+                        color: '#fff',
+                      }}
+                    >
+                      Login with CMU account
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
+            </Card>
+          </Box>
         </Grid>
-        <Grid size={{xs:12,sm:12,md:12,lg:6}}>
-            <Box sx={{ display:'flex',justifyContent:'center',alignCon:'center'}}>
-                <Card sx={{ margin: 10, borderRadius: 4,width:'80%',maxWidth:'500px'}}>
-                    <Box sx={{ margin: 4 }}>
-                        <Typography variant="h5" sx={{ fontFamily: 'Prompt', fontWeight: 'medium' }}>
-                            Welcome!
-                        </Typography>
-                        <Box>
-
-                        </Box>
-                      
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                fontFamily: 'Prompt',
-                                fontWeight: 'normal',
-                                color: '#BF48DD',
-                                mt: 1,
-                                mb: 2,
-                            }}
-                        >
-                            Please enter your email and password.
-                        </Typography>
-                        <Grid container spacing={2} sx={{ width: '100%' }}>
-                        <Grid size={12}>
-                            <TextField
-                                    fullWidth
-                                    required
-                                    id="username"
-                                    label="Email"
-                                    slotProps={{
-                                        inputLabel: { style: { fontFamily: 'Prompt' },sx:{ml:1} },
-                                        input: { 
-                                            style: { fontFamily: 'Prompt' },
-                                            sx: { borderRadius: '10px' }, // Apply border radius
-                                        },
-                                    }}
-                                />
-                            </Grid>
-
-
-                            <Grid size={12}>
-                                <TextField
-                                    fullWidth
-                                    required
-                                    id="password"
-                                    label="Password"
-                                    slotProps={{
-                                        inputLabel: { style: { fontFamily: 'Prompt' },sx:{ml:1} },
-                                        input: { 
-                                            style: { fontFamily: 'Prompt' },
-                                            sx: { borderRadius: '10px' }, // Apply border radius
-                                        },
-                                    }}
-                                />
-                            </Grid>
-                        </Grid>
-                        <Box>
-                            <Box sx={{ color: '#BF48DD', mt: 2, mb: 2 }}>
-                                <Typography
-                                variant="body2"
-                                sx={{
-                                    fontFamily: 'Prompt',
-                                    fontWeight: 'normal',
-                                    color: '#BF48DD',
-                                    mt: 1,
-                                    mb: 2,
-                                    ml:1
-                                }}
-                                >
-                                Forgot Password?
-                                </Typography>
-                            </Box>
-                        </Box>
-                        <Box sx={{display:'flex',justifyContent:'center',mt:"5%"}}>
-                            <Button variant="contained" sx={{bgcolor:'#BF48DD'}}>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        fontFamily: 'Prompt',
-                                        fontWeight: 'medium',
-                                        color: '#fff',
-                                    }}
-                                    >
-                                    Login
-                                </Typography>
-                            </Button>
-                        </Box>
-                            
-                    </Box>
-                  
-                </Card>
-            </Box>
-        </Grid>
-    </Grid>
+      </Grid>
     </Box>
-
-
-  )
+  );
 }
 
-export default page
+export default Page;
