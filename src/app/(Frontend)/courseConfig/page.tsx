@@ -203,11 +203,16 @@ function Page({ course_id, pages, setPages }) {
 
     const fetchTA = async () => {
         try {
-          const result = await axios.get(
-            `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/get/get_all_ta`
-          );
-          console.log(result.data);
-          setTaList(result.data);
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/get/get_by_id?course_id=${course_id}`
+              );
+              if (!response.ok) {
+                const errorData = await response.json();
+                alert(errorData.error || "Failed to fetch TA data");
+                return;
+              }
+              const data = await response.json(); // Parse the response body as JSON
+                setTaList(data || []);
         } catch (error) {
           console.error("Error fetching TA:", error);
         }
@@ -215,11 +220,18 @@ function Page({ course_id, pages, setPages }) {
 
     const fetchFile = async () => {
         try {
-            const result = await axios.get(
-                `${process.env.NEXT_PUBLIC_BACKEND}/file-api/get/get_all_file`
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND}/file-api/get/get_by_id?course_id=${course_id}`
             );
-            console.log(result.data);
-            setFiles(result.data);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(errorData.error || "Failed to fetch files");
+                return;
+              }
+
+              const data = await response.json();
+            setFiles(data || []);
         } catch (error) {
             console.error("Error fetching file:", error);
         }
