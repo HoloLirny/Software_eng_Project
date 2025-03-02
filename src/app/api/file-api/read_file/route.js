@@ -75,16 +75,12 @@ export async function POST(req) {
           where: { student_id: student.student_id },
           update: {
             student_name: student.fullname,
-            section_lec: student.seclec,
-            section_lab: student.seclab,
             student_email: student.student_email,
           },
           create: {
             student_id: student.student_id,
             student_name: student.fullname,
             student_email: student.student_email,
-            section_lec: student.seclec,
-            section_lab: student.seclab,
           },
         });
 
@@ -98,6 +94,8 @@ export async function POST(req) {
           update: {},
           create: {
             student_id: student.student_id,
+            section_lec: student.seclec,
+            section_lab: student.seclab,
             course_id: courseId,
           },
         });

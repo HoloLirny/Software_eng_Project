@@ -64,8 +64,6 @@ async function main() {
       student_id: "650610001",
       student_name: "earn",
       student_email: "earn@example.com",
-      section_lec: "001",
-      section_lab: "000",
     },
   });
 
@@ -76,8 +74,6 @@ async function main() {
       student_id: "650610000",
       student_name: "night",
       student_email: "night@example.com",
-      section_lec: "001",
-      section_lab: "000",
     },
   });
 
@@ -86,6 +82,8 @@ async function main() {
     data: {
       student_id: "650610000",
       course_id: "261361",
+      section_lec: "001",
+      section_lab: "000",
     },
   });
 
@@ -93,6 +91,8 @@ async function main() {
     data: {
       student_id: "650610001",
       course_id: "261361",
+      section_lec: "001",
+      section_lab: "000",
     },
   });
 
