@@ -21,6 +21,7 @@ import '@fontsource/prompt';
 import axios from 'axios';
 import './style.css';
 import CourseConfig from '../courseConfig/page'
+import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface Course {
     course_id : number;
@@ -32,6 +33,12 @@ interface Course {
 }
 
 function Page() {
+    const res = useAuthStore((state) => state.user);
+    const user = res.cmuBasicInfo[0];
+    // const studentRole = user.itaccounttype_EN === "Student Account";
+    const studentRole = false;
+
+    // const user = res.cmuBasicInfo[0];
     const Swal = require('sweetalert2')
     const [addOpen, setAddOpen] = useState(false); // State for dialog visibility
     const [editOpen,setEditOpen] = useState(false); // State for
@@ -41,8 +48,8 @@ function Page() {
     const [courses, setCourses] = useState<Course>([]);
     const [changeOpen, setChangeOpen] = useState(false); // State for change dialog visibility
     const [error, setError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [courseconfig,setCourseconfig] = useState(false);
+    const [errorMessage, setErrorMesage] = useState('');
+    const [courseconfig,setCourseconsfig] = useState(false);
     const [selectcourseconfig,setSelectcourseconfig] = useState(null);
     const [pages, setPages] = useState("home"); // Manage page state
     
@@ -302,7 +309,7 @@ function Page() {
       
       const handlecourseconfig = (id) => {
         setSelectcourseconfig(id);
-        setCourseconfig(true);
+        // setCourseconfig(true);
         setPages("courseconfig");
         console.log("page after",pages)
 
@@ -352,7 +359,7 @@ function Page() {
                         fontStyle: 'italic',
                     }}
                 >
-                    John
+                    {user.firstname_TH} {user.lastname_TH}
                 </Typography>
             </Box>
 
@@ -376,7 +383,7 @@ function Page() {
                         <Grid size={{xs:12,md:6}} key={index}>
                             <Card
                             
-                                onClick={() => handlecourseconfig(course.course_id)}
+                                
                                 sx={{
                                     
                                     // bgcolor: '#F2BEFF',
@@ -386,7 +393,7 @@ function Page() {
                                 }}
                             >
                                 <Grid container alignItems="center" spacing={2}>
-                                    <Grid size={11}>
+                                    <Grid size={11} onClick={() => handlecourseconfig(course.course_id)}>
                                         <Typography
                                             variant="h6"
                                             sx={{
@@ -409,17 +416,21 @@ function Page() {
                                             Course Name : <span style={{ color: '#BF48DD' }}>{course.course_name}</span>
                                         </Typography>
                                     </Grid>
-                                    <Grid size={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                        <Button sx={{ height: '100%' ,mr:-2}} onClick={() => handleEditClick(course)}>
-                                            <MoreVertIcon fontSize="large" />
-                                        </Button>
-                                    </Grid>
+                                    { !studentRole && (
+                                       <Grid size={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                            <Button sx={{ height: '100%' ,mr:-2}} onClick={() => handleEditClick(course)}>
+                                                <MoreVertIcon fontSize="large" />
+                                            </Button>
+                                        </Grid> 
+                                    )}
+                                    
                                 </Grid>
                             </Card>
                         </Grid>
                     ))}
                 </Grid>
                 </Box>   
+                { !studentRole && (
                 <Button
                     variant="contained"
                     onClick={handleAddClick}
@@ -434,7 +445,9 @@ function Page() {
                          <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: '20px' }}>
                             Add
                         </Typography>
-                </Button>
+                </Button>    
+                )}
+                
             </Card>
 
 
