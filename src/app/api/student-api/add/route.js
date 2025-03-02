@@ -63,19 +63,19 @@ export async function POST(req) {
           student_id,
           student_name,
           student_email,
-          section_lec,
-          section_lab,
         },
       });
     }
 
-    // Check if student is already enrolled in the course
-    const existingEnrollment = await prisma.student_course.findUnique({
+    const existingEnrollment = await prisma.student_course.findFirst({
       where: {
-        student_id_course_id: { student_id, course_id },
+        student_id,
+        course_id,
+        section_lec,
+        section_lab,
       },
     });
-
+    
     if (existingEnrollment) {
       return new Response(
         JSON.stringify({
@@ -90,6 +90,8 @@ export async function POST(req) {
       data: {
         student_id,
         course_id,
+        section_lec,
+        section_lab,
       },
     });
 

@@ -32,8 +32,6 @@ model student {
   student_name    String           @db.VarChar(255)
   student_id      String           @unique
   student_email   String           @unique
-  section_lec     String?
-  section_lab     String?
   id              Int              @id @default(autoincrement())
   attendances     attendance[]
   student_course student_course[]
@@ -43,6 +41,8 @@ model student_course {
   id          Int      @id @default(autoincrement())
   student_id  String
   course_id   String
+  section_lec     String?
+  section_lab     String?
   student     student  @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
   course      course   @relation(fields: [course_id], references: [course_id], onDelete: Cascade)
 

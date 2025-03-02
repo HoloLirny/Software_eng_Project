@@ -87,7 +87,7 @@ export async function POST(req) {
       );
     }
 
-    const { section_lab, section_lec } = student;
+    const { section_lab, section_lec } = exist_course_student;
 
     // Check if the date exists in attendance_detail
     const existingDate = await prisma.attendance_detail.findFirst({
