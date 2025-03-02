@@ -26,6 +26,7 @@ import Swal from 'sweetalert2'
 import axios from 'axios';
 import Grid from '@mui/material/Grid2';
 
+
 function Page({ course_id, pages, setPages }) {
    console.log(pages)
    console.log(course_id)
@@ -479,6 +480,11 @@ function Page({ course_id, pages, setPages }) {
                     </Grid>         
                 </Grid>
 
+                <Button onClick={()=>{setPages("attendance")}}>
+                    next
+                </Button>
+              
+               
             </Card>
 
         </Box>
