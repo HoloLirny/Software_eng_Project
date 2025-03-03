@@ -31,7 +31,7 @@ interface Course {
     id : number;
     scan_time : string;
     teacher_id : number;
-    total_student : number;
+   
 }
 
 function Page() {
@@ -42,8 +42,8 @@ function Page() {
    
 
     // const studentRole = user.itaccounttype_EN === "Student Account";
-    const studentRole = true;
-
+    // const studentRole = true;
+    const [studentRole, setStudentRole] = useState<string | null>(null);
     // const user = res.cmuBasicInfo[0];
     const Swal = require('sweetalert2')
     const [addOpen, setAddOpen] = useState(false); // State for dialog visibility
@@ -67,9 +67,6 @@ function Page() {
         setEditOpen(true);
     };
 
-    const handleChangeClick = () => {
-        setChangeOpen(true);
-    };
 
     const handleClose = () => {
         setAddOpen(false);
@@ -80,122 +77,146 @@ function Page() {
 
     const handleChangeCourse = async () => {
         try {
-          // Call the backend to update the course
-          console.log(error.course_id)
-          if (error.course_id) {
-            Swal.fire({
-              title: "Please check your input",
-              text: "Course ID must be exactly 6 digits",
-              icon: "error",
-              timer: 1500,
-              customClass: {
-                popup: "swal-popup",
-              },
-            });
-            return;
-        }
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/update`, // Adjust to match your API route
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                course_name: selectedCourse.course_name, // Include only fields you want to update
-                course_id: selectedCourse.course_id,    
-                id: selectedCourse.id,       
-            }),
+            // Check for valid course_id
+            if (selectedCourse.course_id && selectedCourse.course_id.length !== 6) {
+                Swal.fire({
+                    title: "Please check your input",
+                    text: "Course ID must be exactly 6 digits",
+                    icon: "error",
+                    timer: 1500,
+                    customClass: {
+                        popup: "swal-popup",
+                    },
+                });
+                return;
             }
-          );
-      
-          if (!response.ok) {
-            // Handle error response (e.g., 404 or 500)
-            const errorData = await response.text(); // Use text() to get raw response
-            throw new Error(errorData || "Failed to update the course");
-          }
-      
-          // Handle successful response
-          const data = await response.json();
-          console.log("Update response:", data);
-      
-          // Update the local course list to reflect the changes
-          const updatedCourses = courses.map((course) =>
-            course.id === courseId ? { ...course, name: courseName } : course
-          );
-      
-          setCourses(updatedCourses); // Update the course list
-          Swal.fire({
-            title: "Success!",
-            text: "Course updated successfully.",
-            icon: "success",
-          });
+    
+            // Make sure all necessary fields are provided
+            if (!selectedCourse.course_name || !selectedCourse.course_id || !selectedCourse.id) {
+                Swal.fire({
+                    title: "Error",
+                    text: "Course Name, Course ID, and Course ID are required.",
+                    icon: "error",
+                    timer: 1500,
+                    customClass: {
+                        popup: "swal-popup",
+                    },
+                });
+                return;
+            }
+    
+            // Send PUT request to update the course
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/update`, 
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        course_name: selectedCourse.course_name, // Include only fields you want to update
+                        course_id: selectedCourse.course_id,    
+                        id: selectedCourse.id,
+                        scan_time: selectedCourse.scan_time, // Optional
+                        teacher_id: selectedCourse.teacher_id, // Optional
+                        user_email: user.cmuitaccount, // Ensure you have user_email (probably from context or store)
+                    }),
+                }
+            );
+    
+            if (!response.ok) {
+                // Handle error response
+                const errorData = await response.text(); // Use text() to get raw response
+                throw new Error(errorData || "Failed to update the course");
+            }
+    
+            // Handle successful response
+            const data = await response.json();
+            console.log("Update response:", data);
+    
+            // Update the local course list to reflect the changes
+            const updatedCourses = courses.map((course) =>
+                course.id === selectedCourse.id ? { ...course, ...selectedCourse } : course
+            );
+    
+            setCourses(updatedCourses); // Update the course list in state
+    
+            Swal.fire({
+                title: "Success!",
+                text: "Course updated successfully.",
+                icon: "success",
+            });
         } catch (error) {
-          console.error("Error updating course:", error);
-          Swal.fire({
-            title: "Error",
-            text: error.message || "Failed to update the course. Please try again later.",
-            icon: "error",
-          });
+            console.error("Error updating course:", error);
+            Swal.fire({
+                title: "Error",
+                text: error.message || "Failed to update the course. Please try again later.",
+                icon: "error",
+            });
         } finally {
-          setChangeOpen(false); // Close the dialog
-          setEditOpen(false);
-          setCourseId(""); // Reset course ID
-          setCourseName(""); // Reset course name
+            setChangeOpen(false); // Close the dialog
+            setEditOpen(false);
+            setCourseId(""); // Reset course ID
+            setCourseName(""); // Reset course name
         }
-      };
+    };
       
       
     
     const handleDeleteCourse = async () => {
         Swal.fire({
-          title: "Are you sure?",
-          text: "You want to delete " + courseName + "?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: "Delete",
+            title: "Are you sure?",
+            text: `You want to delete the course "${selectedCourse.course_name}"?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Delete",
         }).then(async (result) => {
-          if (result.isConfirmed) {
-            try {
-              // Make DELETE request to the backendสสส
-              const response = await fetch(   
-                `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/delete?course_id=${selectedCourse.course_id}`,
-                {
-                  method: "DELETE",
+            if (result.isConfirmed) {
+                try {
+                    // Make DELETE request to the backend
+                    const response = await fetch(
+                        `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/delete?course_id=${selectedCourse.course_id}&user_email=${user.cmuitaccount}`, // Include user_email in query params
+                        {
+                            method: "DELETE",
+                        }
+                    );
+    
+                    if (!response.ok) {
+                        throw new Error("Failed to delete the course");
+                    }
+    
+                    // Handle successful deletion
+                    const data = await response.json();
+                    console.log("Course deleted successfully:", data);
+    
+                    // Reset selected course and other state
+                    setSelectedCourse(null);
+                    setCourseId("");
+                    setCourseName("");
+    
+                    // Show success message
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: `"${selectedCourse.course_name}" has been deleted.`,
+                        icon: "success",
+                    });
+                } catch (error) {
+                    console.error("Error deleting course:", error);
+                    Swal.fire({
+                        title: "Error",
+                        text: "Failed to delete the course. Please try again later.",
+                        icon: "error",
+                    });
                 }
-              );
-      
-              if (!response.ok) {
-                throw new Error("Failed to delete the course");
-              }
-             
-              const data = await response.json();
-              setSelectedCourse("");
-              setCourseId("");
-              setCourseName("");
-              // Show success message
-              Swal.fire({
-                title: "Deleted!",
-                text: selectedCourse.course_name + " has been deleted.",
-                icon: "success",
-              });
-            } catch (error) {
-              console.error("Error deleting course:", error);
-              Swal.fire({
-                title: "Error",
-                text: "Failed to delete the course. Please try again later.",
-                icon: "error",
-              });
             }
-          }
         });
-      
+    
         // Close the dialog and reset state
         setEditOpen(false);
-      
-      };
+    };
+    
       
 
     const handleClosechange = () => {
@@ -221,6 +242,7 @@ function Page() {
             const addCourse = {
                 course_id: courseId,
                 course_name: courseName,
+                user_email:user.cmuitaccount
             };
     
             try {
@@ -277,23 +299,60 @@ function Page() {
     }, [res, router]);
 
     const user = res?.cmuBasicInfo?.[0] || null; 
+    console.log("user",user)
 
+   
 
-    useEffect(() => {
-        const fetchCourses = async () => {
+      useEffect(() => {
+        const fetchRole = async () => {
+          if (!user?.cmuitaccount) return; // Ensure user is available before making the request
+      
           try {
-            const result = await axios.get(
-              `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/get/get_all_course`
+            const response = await axios.get(
+              `${process.env.NEXT_PUBLIC_BACKEND}/get_role`,
+              {
+                params: { email: user.cmuitaccount }, // Pass email as query param
+              }
             );
-            console.log(result.data);
-            setCourses(result.data);
+      
+            console.log("Role response:", response.data);
+            
+            // Check if user_role is "STUDENT" and update state
+            setStudentRole(response.data);
           } catch (error) {
-            console.error("Error fetching courses:", error);
+            console.error("Error fetching role:", error);
+            setStudentRole("STUDENT"); // Handle error case
           }
         };
-        
-        fetchCourses(); // Call the async function
-      }, [changeOpen,editOpen,addOpen,selectedCourse]);
+      
+        fetchRole();
+      }, [user]);
+
+      useEffect(() => {
+        const fetchCourses = async (userEmail: string) => {
+            try {
+                const result = await axios.get(
+                    `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/get/get_by_user_email`,
+                    {
+                        params: { user_email: userEmail },
+                    }
+                );
+                console.log("Courses fetched:", result.data);
+                
+                // Extract the course data from the response
+                const coursesData = result.data.map((item: any) => item.course); 
+                setCourses(coursesData); // Set only the course data
+            } catch (error) {
+                console.error("Error fetching courses:", error);
+            }
+        };
+    
+        if (studentRole !== "STUDENT" && user?.cmuitaccount) {
+            fetchCourses(user.cmuitaccount); // Fetch courses for the user
+        }
+    
+    }, [changeOpen, editOpen, addOpen, selectedCourse, user?.cmuitaccount]); // Add user.cmuitaccount as a dependency
+    
       
       const handlecourseconfig = (id) => {
         setSelectcourseconfig(id);
@@ -304,8 +363,8 @@ function Page() {
       }
 
     useEffect(() => {
-        console.log("page",pages)
-    },[pages]);
+        console.log("page",courses)
+    },[courses]);
 
     return (
         <>
@@ -313,7 +372,7 @@ function Page() {
             <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages}/>
         ): pages == "attendance" ? (
              <Attendance course_id={selectcourseconfig} pages={pages} setPages={setPages }/>
-        ) : studentRole === true ? (
+        ) : studentRole === "STUDENT" ? (
             <Box
             sx={{
                 minHeight: '100vh',
@@ -449,6 +508,31 @@ function Page() {
                 <Box sx={{ overflowY: 'auto', maxHeight: 'calc(80vh - 130px)' }}>
                 {/* Display courses */}
                 <Grid container spacing={2}>
+               
+                    {courses.length == 0 && studentRole !== "TA" && (
+                            <Box
+                                 sx={{
+                                     display: 'flex',
+                                     justifyContent: 'center',
+                                     alignItems: 'center',
+                                     height: '100%',
+                                     textAlign: 'center',
+                                     width: '100%', // Ensure full width
+                                 }}
+                             >
+                                 <Typography 
+                                     variant="h5" // Increase text size
+                                     color="info" // Change color
+                                     sx={{
+                                         fontWeight: 'bold', // Make it bold
+                                     }}
+                                 >
+                                    Please Add Course
+                                 </Typography>
+                             </Box>
+                        
+                    )}
+
                     {courses.map((course, index) => (
                         
                         <Grid size={{xs:12,md:6}} key={index}>
@@ -487,7 +571,7 @@ function Page() {
                                             Course Name : <span style={{ color: '#BF48DD' }}>{course.course_name}</span>
                                         </Typography>
                                     </Grid>
-                                    { !studentRole && (
+                                    { studentRole !== "TA" && (
                                        <Grid size={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                                             <Button sx={{ height: '100%' ,mr:-2}} onClick={() => handleEditClick(course)}>
                                                 <MoreVertIcon fontSize="large" />
@@ -501,7 +585,7 @@ function Page() {
                     ))}
                 </Grid>
                 </Box>   
-                { !studentRole && (
+                { studentRole !== "TA" && (
                 <Button
                     variant="contained"
                     onClick={handleAddClick}
@@ -682,7 +766,7 @@ function Page() {
                     
                     <TextField
                         fullWidth
-                        value={selectedCourse.course_id}
+                        value={selectedCourse ? selectedCourse.course_id : ''} 
                         slotProps={{
                             htmlInput: { readOnly: true }, // Make field read-only
                         }}
@@ -709,7 +793,7 @@ function Page() {
                     </Typography>
                     <TextField
                         fullWidth
-                        value={selectedCourse.course_name}
+                        value={selectedCourse ? selectedCourse.course_name : ''} 
                         slotProps={{
                             htmlInput: { readOnly: true }, // Make field read-only
                         }}
@@ -739,7 +823,7 @@ function Page() {
                             borderRadius: 4,
                             width: '40%', // Adjust button width as needed
                         }}
-                        onClick={handleChangeClick}
+                        onClick={()=> setChangeOpen(true)}
                     >
                         <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: {xs:"16px",sm:"20px"},}}>
                             Edit
@@ -822,7 +906,7 @@ function Page() {
                     </Typography>
                     <TextField
                         fullWidth
-                        value={selectedCourse.course_name}
+                        value={selectedCourse ? selectedCourse.course_name : ''} 
                         onChange={(e) =>
                             setSelectedCourse((prev) => ({
                                 ...prev,
