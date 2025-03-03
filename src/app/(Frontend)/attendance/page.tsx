@@ -446,7 +446,7 @@ function Page({ course_id = "261361", pages, setPages }) {
         fontWeight: 'bold' ,
         top: 16, // Align with Attendance
         right: 16, // Position on the right
-        marginBottom: 2,
+        marginBottom: 5,
       }}
       onClick={exportFile}
     >
@@ -455,7 +455,7 @@ function Page({ course_id = "261361", pages, setPages }) {
       </Box>
       
       {/* These buttons will now be placed below the "Back" button */}
-      <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: 3 , justifyContent: "space-between" , alignItems: "center", width: "95%"}}>
+      <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: 3 , justifyContent: "space-between" , alignItems: "center", width: "90%", mt : 10}}>
         <Button
           variant="contained"
           
@@ -468,7 +468,18 @@ function Page({ course_id = "261361", pages, setPages }) {
           Add student
         </Button>
 
-        <IconButton 
+        {    <Button
+          variant="contained"
+          sx={{ marginBottom: 2,
+            backgroundColor : 'white',
+            color : '#6a329f' ,
+            fontWeight: 'bold' ,
+             width: "auto"}} // This makes the button take available space on the left
+          onClick={handleOpenaddDateModal}
+        >
+          Add DATE
+        </Button>
+        /* <IconButton 
           color="primary" 
           onClick={handleOpenaddDateModal} 
           sx={{ 
@@ -483,11 +494,12 @@ function Page({ course_id = "261361", pages, setPages }) {
               transform: "scale(1.2)", 
               backgroundColor: "#e8b2f5",
               color: "#ffffff" // Slightly brighter on hover
+            
             } 
           }}
         >
           <Plus size={35} />
-        </IconButton>
+        </IconButton> */}
       </Box>
 
 
@@ -512,7 +524,7 @@ function Page({ course_id = "261361", pages, setPages }) {
         >
           {/* Table Head */}
           <TableHead sx = {{position: "sticky", top: 0, zIndex: 3}}>
-            <TableRow sx={{ backgroundColor: "#d46eec", flexDirection: "row", display: "flex" }}>
+            <TableRow sx={{ backgroundColor: "#c02ae3", flexDirection: "row", display: "flex" }}>
               {columns.map((col, index) => (
                 <TableCell
                   key={col.id}
@@ -526,7 +538,7 @@ function Page({ course_id = "261361", pages, setPages }) {
                     position: "sticky",
                     top: 0, // Fix the header row
                     left: index === 0 ? 0 : "auto", // Fix the first column
-                    backgroundColor: "#d46eec",
+                    backgroundColor: "#c02ae3",
                     zIndex: index === 0 ? 4 : 3, // Ensure it stays above other cells
                     cursor: index >= 2 ? "pointer" : "default",
                   }}
@@ -557,7 +569,7 @@ function Page({ course_id = "261361", pages, setPages }) {
                       textAlign: "center",
                       position: colIndex === 0 ? "sticky" : "static",
                       left: colIndex === 0 ? 0 : "auto", // Fix first column
-                      backgroundColor: colIndex === 0 ? "#d46eec" : "inherit",
+                      backgroundColor: colIndex === 0 ? "#e19bf2" : "inherit",
                       zIndex: colIndex === 0 ? 2 : "auto",
                     }}
                   >
@@ -810,7 +822,7 @@ function Page({ course_id = "261361", pages, setPages }) {
 
           <form>
             {/* Student ID Field */}
-            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
               <Grid item xs={4}>
                 <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student ID</h3>
               </Grid>
@@ -826,6 +838,9 @@ function Page({ course_id = "261361", pages, setPages }) {
               />
               </Grid>
             </Grid>
+            { isValidStudentId(formData.student_id) ? <Box></Box> : 
+                                                                <Typography sx={{ color: 'red', fontSize: '0.8rem', mb: 1 , width : '100%', ml: 6}}>
+                                                                    Student ID must be at least 9 characters. </Typography>}
 
             {/* Student Name Field */}
             <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
