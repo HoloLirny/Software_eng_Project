@@ -394,7 +394,7 @@ function Page({ course_id = "261361", pages, setPages }) {
       (<Box
         sx={{
           minHeight: "100vh",
-          bgcolor: "#8F16AD",
+          background: 'linear-gradient(#8f16ad, #560d69)',
           flexDirection: "column",
           display: "flex",
           justifyContent: "center",
@@ -408,6 +408,7 @@ function Page({ course_id = "261361", pages, setPages }) {
       onClick={() => setPages("courseconfig")}
       sx={{
           position: 'absolute',
+          mb: 2 ,
           top: 16,
           left: 16,
           color: '#8F16AD',
@@ -442,6 +443,7 @@ function Page({ course_id = "261361", pages, setPages }) {
       color="secondary"
       sx={{
         position: 'absolute',
+        fontWeight: 'bold' ,
         top: 16, // Align with Attendance
         right: 16, // Position on the right
         marginBottom: 2,
@@ -453,11 +455,14 @@ function Page({ course_id = "261361", pages, setPages }) {
       </Box>
       
       {/* These buttons will now be placed below the "Back" button */}
-      <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: 3 , justifyContent: "space-between" , alignItems: "center", width: "95%"}}>
         <Button
           variant="contained"
+          
           color="secondary"
-          sx={{ marginBottom: 2, flex: 1 }} // This makes the button take available space on the left
+          sx={{ marginBottom: 2,
+            fontWeight: 'bold' ,
+             width: "auto"}} // This makes the button take available space on the left
           onClick={handleAddStudentModal}
         >
           Add student
@@ -467,17 +472,21 @@ function Page({ course_id = "261361", pages, setPages }) {
           color="primary" 
           onClick={handleOpenaddDateModal} 
           sx={{ 
-            fontSize: 32, 
-            color: "#ffcc00", // Bright yellow to attract attention
+            right : 'auto',
+            // fontSize: 24, 
+            color: "#d46eec", // Bright yellow to attract attention
             backgroundColor: "#ffffff",
+            ml : 2 ,
+            mb : 2 ,
             transition: "transform 0.2s",
             "&:hover": { 
               transform: "scale(1.2)", 
-              color: "#ffd700" // Slightly brighter on hover
+              backgroundColor: "#e8b2f5",
+              color: "#ffffff" // Slightly brighter on hover
             } 
           }}
         >
-          <Plus size={40} />
+          <Plus size={35} />
         </IconButton>
       </Box>
 
@@ -503,7 +512,7 @@ function Page({ course_id = "261361", pages, setPages }) {
         >
           {/* Table Head */}
           <TableHead sx = {{position: "sticky", top: 0, zIndex: 3}}>
-            <TableRow sx={{ backgroundColor: "#d63384", flexDirection: "row", display: "flex" }}>
+            <TableRow sx={{ backgroundColor: "#d46eec", flexDirection: "row", display: "flex" }}>
               {columns.map((col, index) => (
                 <TableCell
                   key={col.id}
@@ -517,7 +526,7 @@ function Page({ course_id = "261361", pages, setPages }) {
                     position: "sticky",
                     top: 0, // Fix the header row
                     left: index === 0 ? 0 : "auto", // Fix the first column
-                    backgroundColor: "#d63384",
+                    backgroundColor: "#d46eec",
                     zIndex: index === 0 ? 4 : 3, // Ensure it stays above other cells
                     cursor: index >= 2 ? "pointer" : "default",
                   }}
@@ -525,7 +534,7 @@ function Page({ course_id = "261361", pages, setPages }) {
                   onClick = {() => index >= 2 && handleOpenGenQRModal(col.label, col.description)}
                 >
                   {col.label}
-                  {col.description && <p>{col.description}</p>}
+                  { col.description && <p>{col.description}</p>}
                 </TableCell>
               ))}
             </TableRow>
@@ -536,7 +545,7 @@ function Page({ course_id = "261361", pages, setPages }) {
             {students.map((student, index) => (
               <TableRow
                 key={index}
-                sx={{ backgroundColor: index % 2 === 0 ? "#fce4ec" : "#f8bbd0", flexDirection: "row", display: "flex"}}
+                sx={{ backgroundColor: index % 2 === 0 ? "#f6e0fb" : "#eec8f8", flexDirection: "row", display: "flex"}}
               >
                 {columns.map((col, colIndex) => (
                   <TableCell
@@ -548,7 +557,7 @@ function Page({ course_id = "261361", pages, setPages }) {
                       textAlign: "center",
                       position: colIndex === 0 ? "sticky" : "static",
                       left: colIndex === 0 ? 0 : "auto", // Fix first column
-                      backgroundColor: colIndex === 0 ? "#f8bbd0" : "inherit",
+                      backgroundColor: colIndex === 0 ? "#d46eec" : "inherit",
                       zIndex: colIndex === 0 ? 2 : "auto",
                     }}
                   >
@@ -601,10 +610,11 @@ function Page({ course_id = "261361", pages, setPages }) {
           <TextField fullWidth value={detail} onChange={(e) => setDetail(e.target.value)} />
 
           <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-            <Button variant="contained" color="secondary" onClick={handleAddColumn}>
+            <Button variant="contained" color="secondary" onClick={handleAddColumn}
+            sx={{ fontWeight: 'bold'  }}>
               ADD
             </Button>
-            <Button variant="contained" color="inherit" onClick={handleCloseaddDateModal}>
+            <Button variant="contained" color='error' onClick={handleCloseaddDateModal}>
               Cancel
             </Button>
           </Box>
@@ -662,7 +672,7 @@ function Page({ course_id = "261361", pages, setPages }) {
           </Box>
           <Typography variant="h6" style={{ color: "#8F16AD", fontWeight: "bold", marginTop: 2}}> {generateQRDate} </Typography>
           {generateQRDetail === "" ? <></> : <Typography variant="h6" style={{ color: "#8F16AD", fontWeight: "bold" }}> {generateQRDetail} </Typography>}
-          <Button variant="contained" color="secondary" sx={{marginTop: 4}} onClick={handleOpenQrConfigModal}>
+          <Button variant="contained" color="secondary" sx={{marginTop: 4, fontWeight: 'bold'}} onClick={handleOpenQrConfigModal}>
             Generate QR
           </Button>
         </Box>
@@ -720,7 +730,7 @@ function Page({ course_id = "261361", pages, setPages }) {
           />
 
           {/* Submit Button */}
-          <Button variant="contained" color="primary" fullWidth onClick = {() => setPage("qrGen")}>
+          <Button variant="contained" color="secondary" fullWidth onClick = {() => setPage("qrGen")}>
             Generate QR code
           </Button>
         </form>
@@ -764,7 +774,7 @@ function Page({ course_id = "261361", pages, setPages }) {
             <Button variant="contained" color="secondary" onClick={editDate}>
               Save
             </Button>
-            <Button variant="contained" color="inherit" onClick={handleCloseEditDateModal}>
+            <Button variant="contained" color="error" onClick={handleCloseEditDateModal}>
               Cancel
             </Button>
           </Box>
@@ -886,8 +896,9 @@ function Page({ course_id = "261361", pages, setPages }) {
             </Grid>
 
             {/* Submit Button */}
-            <Button variant="contained" color="primary" fullWidth onClick={handleSubmit}>
-              Submit
+            <Button variant="contained" color="secondary" fullWidth onClick={handleSubmit}
+            sx={{ fontWeight: 'bold'  }}>
+              Comfirm
             </Button>
           </form>
         </Box>
