@@ -11,7 +11,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get("course_id");
     const teacher_id = 1;
-    
+
     if (!courseId) {
       return NextResponse.json(
         { message: "course_id is required" },
@@ -45,23 +45,23 @@ export async function GET(req) {
       },
     });
 
+    const attendance_details = await prisma.attendance_detail.findMany({
+      where: { course_id: courseId },
+    });
+
     const attendanceDates = new Set();
     const dateDescriptions = {};
 
-    attendances.forEach((attendance) => {
-      if (attendance.attendance_detail?.date) {
-        const date = attendance.attendance_detail.date;
-        const description = attendance.attendance_detail.description || "";
-        dateDescriptions[date] = description
-          ? `${date} - ${description}`
-          : date;
-        attendanceDates.add(date);
-      }
+    attendance_details.forEach((attendance) => {
+      const date = attendance.date;
+      const description = attendance.description || "";
+      dateDescriptions[date] = description ? `${date} - ${description}` : date;
+      attendanceDates.add(date);
     });
 
     const datesArray = Array.from(attendanceDates)
       .sort()
-      .map((date) => dateDescriptions[date]); // Replace date with formatted version
+      .map((date) => dateDescriptions[date]); 
 
     const data = students.map(({ student }) => {
       const row = {
@@ -71,7 +71,7 @@ export async function GET(req) {
       };
 
       datesArray.forEach((dateDesc) => {
-        const [date] = dateDesc.split(" - "); // Extract original date for lookup
+        const [date] = dateDesc.split(" - "); 
 
         const attendanceForDate = attendances.find(
           (a) =>
@@ -120,7 +120,7 @@ export async function GET(req) {
         course_id: courseId,
       },
     });
-    
+
     if (existingFile) {
       const updatedFile = await prisma.file.update({
         where: { id: existingFile.id },
@@ -141,7 +141,7 @@ export async function GET(req) {
       });
       console.log("File uploaded successfully:", savedFile);
     }
-    
+
     return NextResponse.json({
       message: "File saved successfully",
       fileUrl: `/public/uploads/${fileName}`,
