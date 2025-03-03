@@ -1,30 +1,28 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../prisma/prisma";
-// http://localhost:3000/api/student-api/delete?student_id=650610747
+// http://localhost:3000/api/student-api/delete
+
 export async function DELETE(req) {
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("student_id");
+    const {
+      student_id, course_id, user_email
+    } = await req.json();
 
-    if (!id) {
+    if (!student_id || !user_email || !course_id) {
       return NextResponse.json(
-        { error: "Student ID is required" },
+        { error: "student_id, course_id, user_email are required" },
         { status: 400 }
       );
     }
     ///////////////////////////////////////////////////////
-    // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
-
     const teacher = await prisma.user.findUnique({
-      where: { id: teacher_id },
-      select: { user_role: true },
+      where: { email: user_email },
     });
 
     if (!teacher) {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} not found`,
+          message: `User with email ${user_email}} not found`,
         }),
         { status: 404 }
       );
@@ -33,32 +31,50 @@ export async function DELETE(req) {
     if (teacher.user_role !== "TEACHER") {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} is not a TEACHER`,
+          message: `User with email ${user_email} is not a TEACHER`,
         }),
         { status: 403 }
       );
     }
     ///////////////////////////////////////////////////////
     const existingStudent = await prisma.student.findUnique({
-      where: { student_id: id },
+      where: { student_id },
     });
 
     if (!existingStudent) {
       return new Response(
         JSON.stringify({
-          message: `Student with student_id ${id} isn't exists`,
+          message: `Student with student_id ${student_id} isn't exists`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    const existingCourse = await prisma.course.findUnique({
+      where: { course_id },
+    });
+
+    if (!existingCourse) {
+      return new Response(
+        JSON.stringify({
+          message: `Course with course_id ${course_id} not found`,
         }),
         { status: 404 }
       );
     }
  
-    const deleeteStudent = await prisma.student.delete({
-      where: { student_id: id },
+    const deleteStudent = await prisma.student_course.delete({
+      where: { student_id_course_id: { student_id, course_id } }
     });
 
+    const deleteStudentAttendance = await prisma.attendance.deleteMany({
+      where: { student_id, course_id } 
+    });
+    
     return NextResponse.json({
       message: "Student and related data deleted successfully",
-      deleeteStudent,
+      deleteStudent,
+      deleteStudentAttendance
     });
   } catch (error) {
     console.error("Error deleting student:", error);
