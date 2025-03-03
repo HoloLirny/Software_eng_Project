@@ -1,12 +1,34 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../../prisma/prisma";
 
-// http://localhost:3000/api/student-api/get/get_by_id?student_id=650610769
+// http://localhost:3000/api/student-api/get/get_by_id?student_id=650610769&user_email=teacher@example.com
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const student_id = searchParams.get("student_id");
+    const user_email = searchParams.get("user_email");
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email }
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
+      );
+    }
 
     if (!student_id) {
       return NextResponse.json(

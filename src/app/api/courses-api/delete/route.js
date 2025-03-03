@@ -3,31 +3,28 @@ import prisma from "../../../../../prisma/prisma";
 import fs from "fs";
 import path from "path";
 
-// http://localhost:3000/api/courses-api/delete?course_id=001001
+// http://localhost:3000/api/courses-api/delete?course_id=001001&user_email=teacher@example.com
 export async function DELETE(req) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("course_id");
+    const user_email = searchParams.get("user_email");
 
-    if (!id) {
+    if (!id || !user_email) {
       return NextResponse.json(
-        { error: "Course ID is required" },
+        { error: "Course ID and User email are required" },
         { status: 400 }
       );
     }
 
-    // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
-
     const teacher = await prisma.user.findUnique({
-      where: { id: teacher_id },
-      select: { user_role: true },
+      where: { email: user_email },
     });
 
     if (!teacher) {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} not found`,
+          message: `User with email ${user_email}} not found`,
         }),
         { status: 404 }
       );
@@ -36,12 +33,12 @@ export async function DELETE(req) {
     if (teacher.user_role !== "TEACHER") {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} is not a TEACHER`,
+          message: `User with email ${user_email} is not a TEACHER`,
         }),
         { status: 403 }
       );
     }
-    ///////////////////////////////////////////////////////
+    
     const existingCourse = await prisma.course.findUnique({
       where: { course_id: id },
     });
