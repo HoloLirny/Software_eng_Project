@@ -1,41 +1,46 @@
 "use client";
-import axios, { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { SignInResponse } from "../api/signIn/route";
 
-export default function cmuEntraIDCallback() {
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import axios, { AxiosError } from "axios";
+import { SignInResponse } from "../api/signIn/route";
+import { useAuthStore } from "@/app/store/useAuthStore"; // Import the auth store
+
+export default function CmuEntraIDCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const fetchUser = useAuthStore((state) => state.fetchUser);
   const code = searchParams.get("code");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    //Next.js takes sometime to read parameter from URL
-    //So we'll check if "code" is ready before calling sign-in api
     if (!code) return;
 
-    axios
-      .post<SignInResponse>("../api/signIn", { authorizationCode: code })
-      .then((resp) => {
-        if (resp.data.ok) {
-          router.push("../course");
+    const handleSignIn = async () => {
+      try {
+        const response = await axios.post<SignInResponse>(
+          "../api/signIn",
+          { authorizationCode: code },
+          { withCredentials: true }
+        );
+
+        if (response.data.ok) {
+          await fetchUser(); // Fetch user data after login
+          router.push("../course"); // Redirect to course page
         }
-      })
-      .catch((error: AxiosError<SignInResponse>) => {
+      } catch (error: unknown) {
         if (!error.response) {
-          setMessage(
-            "Cannot connect to CMU EntraID Server. Please try again later."
-          );
+          setMessage("Cannot connect to CMU EntraID Server. Please try again later.");
         } else if (!error.response.data.ok) {
           setMessage(error.response.data.message);
         } else {
           setMessage("..Unknown error occurred. Please try again later.");
         }
-      });
-  }, [code]);
+      }
+    };
+
+    handleSignIn(); // Call the async function inside useEffect
+  }, [code, fetchUser, router]);
 
   return <div className="p-3">{message || "Redirecting ..."}</div>;
 }

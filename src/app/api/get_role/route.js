@@ -24,10 +24,7 @@ export async function GET(request) {
     });
 
     if (!role) {   
-        return NextResponse.json(
-            { error: "Role not found" },
-            { status: 404 }
-        );
+        return NextResponse.json("STUDENT", { status: 200 });
     }
 
     return NextResponse.json(role);
