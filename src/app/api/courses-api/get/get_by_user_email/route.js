@@ -36,13 +36,9 @@ export async function GET(request) {
         { status: 403 }
       );
     }
-
-    const user = await prisma.user.findUnique({
-        where: { email: user_email },
-    });
-
+    
     const course = await prisma.user_course.findMany({
-        where: { user_id: user.id }, 
+        where: { user_id: teacher.id }, 
         include: { course: true }
     });
   

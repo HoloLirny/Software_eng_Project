@@ -2,12 +2,34 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/attendance-api/add_date
 export async function POST(req) {
   try {
-    const { description, date, course_id } = await req.json();
+    const { description, date, course_id, user_email } = await req.json();
 
-    if (!date || !course_id) {
+    if (!date || !course_id || !user_email) {
       return new Response(
         JSON.stringify({ message: "date and course_id are required" }),
         { status: 400 }
+      );
+    }
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
       );
     }
 
