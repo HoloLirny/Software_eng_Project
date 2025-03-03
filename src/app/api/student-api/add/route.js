@@ -9,6 +9,7 @@ export async function POST(req) {
       course_id,
       section_lec,
       section_lab,
+      user_email
     } = await req.json();
 
     if (
@@ -17,7 +18,8 @@ export async function POST(req) {
       !student_name ||
       !student_email ||
       !section_lec ||
-      !section_lab
+      !section_lab||
+      !user_email
     ) {
       return new Response(
         JSON.stringify({ error: "Missing required fields." }),
@@ -35,20 +37,25 @@ export async function POST(req) {
       });
     }
 
-    // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1;
-
     const teacher = await prisma.user.findUnique({
-      where: { id: teacher_id },
-      select: { user_role: true },
+      where: { email: user_email }
     });
 
-    if (!teacher || teacher.user_role !== "TEACHER") {
+    if (!teacher) {
       return new Response(
         JSON.stringify({
-          message: `Unauthorized: User ${teacher_id} is not a TEACHER.`,
+          message: `User with email ${user_email} not found`,
         }),
-        { status: teacher ? 403 : 404 }
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
       );
     }
 
@@ -63,19 +70,17 @@ export async function POST(req) {
           student_id,
           student_name,
           student_email,
-          section_lec,
-          section_lab,
         },
       });
     }
 
-    // Check if student is already enrolled in the course
-    const existingEnrollment = await prisma.student_course.findUnique({
+    const existingEnrollment = await prisma.student_course.findFirst({
       where: {
-        student_id_course_id: { student_id, course_id },
+        student_id,
+        course_id,
       },
     });
-
+    
     if (existingEnrollment) {
       return new Response(
         JSON.stringify({
@@ -90,6 +95,8 @@ export async function POST(req) {
       data: {
         student_id,
         course_id,
+        section_lec,
+        section_lab,
       },
     });
 

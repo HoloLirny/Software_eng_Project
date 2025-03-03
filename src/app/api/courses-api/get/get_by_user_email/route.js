@@ -1,22 +1,44 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../../prisma/prisma";
 
-// http://localhost:3000/api/courses-api/get/get_by_user_email?email=teacher@example.com
+// http://localhost:3000/api/courses-api/get/get_by_user_email?user_email=teacher@example.com
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email");
+    const user_email = searchParams.get("user_email");
 
-    if (!email) {
+    if (!user_email) {
       return NextResponse.json(
         { error: "email is required" },
         { status: 400 }
       );
     }
 
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email }
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
+      );
+    }
+
     const user = await prisma.user.findUnique({
-        where: { email: email },
+        where: { email: user_email },
     });
 
     const course = await prisma.user_course.findMany({
@@ -24,7 +46,6 @@ export async function GET(request) {
         include: { course: true }
     });
   
-
     if (!course) {
       return NextResponse.json(
         { error: "Course not found" },

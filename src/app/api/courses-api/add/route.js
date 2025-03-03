@@ -1,10 +1,10 @@
 import prisma from "../../../../../prisma/prisma";
-// Thing left to do
-// connect with auth that link id of logined user 
+
 // http://localhost:3000/api/courses-api/add
+
 export async function POST(req) {
   try {
-    const { course_id, course_name, scan_time } = await req.json();
+    const { course_id, course_name, scan_time, user_email } = await req.json();
 
     // Validate required fields
     if (!course_id || !course_name) {
@@ -16,18 +16,14 @@ export async function POST(req) {
       );
     }
     ///////////////////////////////////////////////////////
-    // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
-
     const teacher = await prisma.user.findUnique({
-      where: { id: teacher_id },
-      select: { user_role: true },
+      where: { email: user_email }
     });
 
     if (!teacher) {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} not found`,
+          message: `User with email ${user_email} not found`,
         }),
         { status: 404 }
       );
@@ -36,12 +32,13 @@ export async function POST(req) {
     if (teacher.user_role !== "TEACHER") {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} is not a TEACHER`,
+          message: `User with email ${user_email} is not a TEACHER`,
         }),
         { status: 403 }
       );
     }
     ///////////////////////////////////////////////////////
+
     const existingCourse = await prisma.course.findUnique({
       where: { course_id },
     });
@@ -60,13 +57,13 @@ export async function POST(req) {
         data: {
           course_id,
           course_name,
-          teacher_id,
+          teacher_id: teacher.id,
           scan_time,
         },
       }),
       prisma.user_course.create({
         data: {
-          user_id: teacher_id, // Replace with actual user ID later
+          user_id: teacher.id, 
           course_id: course_id,
         },
       }),
