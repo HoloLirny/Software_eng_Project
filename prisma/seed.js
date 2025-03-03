@@ -82,80 +82,81 @@ async function main() {
   // });
 
   // Seed Student-Course Relationship
-  await prisma.student_course.create({
-    data: {
-      student_id: "650610759",
-      course_id: "261361",
-    },
-  });
+  // await prisma.student_course.create({
+  //   data: {
+  //     student_id: "650610759",
+  //     course_id: "261361",
+  //   },
+  // });
 
-  await prisma.student_course.create({
-    data: {
-      student_id: "650610760",
-      course_id: "261361",
-    },
-  });
+  // await prisma.student_course.create({
+  //   data: {
+  //     student_id: "650610760",
+  //     course_id: "261361",
+  //   },
+  // });
 
-  await prisma.attendance_detail.create({
-    data: {
-      date: "23-01-2025",
-      description: "HW1",
-      course_id: "261361",
-    },
-  });
+//   await prisma.attendance_detail.create({
+//     data: {
+//       date: "23-01-2025",
+//       description: "HW1",
+//       course_id: "261361",
+//     },
+//   });
 
-  // Seed Attendance
-  await prisma.attendance.create({
-    data: {
-      section_lec: "001",
-      section_lab: "000",
-      user: {
-        connect: { id: user1.id },
-      },
-      course: {
-        connect: { course_id: "261361" },
-      },
-      student: {
-        connect: { student_id: "650610759" },
-      },
-      attendance_detail: {
-        connect: { id: 1 },
-      },
-    },
-  });
+//   // Seed Attendance
+//   await prisma.attendance.create({
+//     data: {
+//       section_lec: "001",
+//       section_lab: "000",
+//       user: {
+//         connect: { id: user1.id },
+//       },
+//       course: {
+//         connect: { course_id: "261361" },
+//       },
+//       student: {
+//         connect: { student_id: "650610759" },
+//       },
+//       attendance_detail: {
+//         connect: { id: 1 },
+//       },
+//     },
+//   });
 
-  await prisma.file.create({
-    data: {
-      file_name: "studentlist_261361.xlsx",
-      file_url: "/uploads/studentlist_261361.xlsx",
-      uploaded_by: user1.id,
-      course_id: "261361",
-    },
-  });
+//   await prisma.file.create({
+//     data: {
+//       file_name: "studentlist_261361.xlsx",
+//       file_url: "/uploads/studentlist_261361.xlsx",
+//       uploaded_by: user1.id,
+//       course_id: "261361",
+//     },
+//   });
 
-  await prisma.user_course.upsert({
-    where: {
-      id: 1,
-    },
-    update: {},
-    create: {
-      user_id: user1.id,
-      course_id: "261361",
-    },
-  });
+//   await prisma.user_course.upsert({
+//     where: {
+//       id: 1,
+//     },
+//     update: {},
+//     create: {
+//       user_id: user1.id,
+//       course_id: "261361",
+//     },
+//   });
 
-  await prisma.user_course.upsert({
-    where: {
-      id: 2,
-    },
-    update: {},
-    create: {
-      user_id: user2.id,
-      course_id: "261361",
-    },
-  });
+//   await prisma.user_course.upsert({
+//     where: {
+//       id: 2,
+//     },
+//     update: {},
+//     create: {
+//       user_id: user2.id,
+//       course_id: "261361",
+//     },
+//   });
 
-  console.log("Seeding completed!");
+//   console.log("Seeding completed!");
+// }
 }
 
 main()
