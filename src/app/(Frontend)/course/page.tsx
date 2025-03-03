@@ -23,6 +23,7 @@ import './style.css';
 import CourseConfig from '../courseConfig/page'
 import { useAuthStore } from "@/app/store/useAuthStore";
 import Attendance from '../attendance/page'
+import { useRouter } from "next/navigation";
 
 interface Course {
     course_id : number;
@@ -34,10 +35,14 @@ interface Course {
 }
 
 function Page() {
+    const router = useRouter();
     const res = useAuthStore((state) => state.user);
-    const user = res.cmuBasicInfo[0] ;
+    const fetchUser = useAuthStore((state) => state.fetchUser);
+    console.log("respnce ",res)
+   
+
     // const studentRole = user.itaccounttype_EN === "Student Account";
-    const studentRole = false;
+    const studentRole = true;
 
     // const user = res.cmuBasicInfo[0];
     const Swal = require('sweetalert2')
@@ -48,9 +53,7 @@ function Page() {
     const [courseName, setCourseName] = useState<string>(''); // State for course Name
     const [courses, setCourses] = useState<Course>([]);
     const [changeOpen, setChangeOpen] = useState(false); // State for change dialog visibility
-    const [error, setError] = useState(false);
-    const [errorMessage, setErrorMesage] = useState('');
-    const [courseconfig,setCourseconsfig] = useState(false);
+    const [error, setError] = useState({ courseId: "" });
     const [selectcourseconfig,setSelectcourseconfig] = useState(null);
     const [pages, setPages] = useState("home"); // Manage page state
     
@@ -60,7 +63,7 @@ function Page() {
 
     const handleEditClick = (course) => {
         setSelectedCourse(course); // Store the selected course
-        console.log("this is ",selectedCourse);
+        // console.log("this is ",selectedCourse);
         setEditOpen(true);
     };
 
@@ -75,33 +78,22 @@ function Page() {
         setCourseName('');
     };
 
-    const handleInputChange = (e) => {
-        const input = e.target.value;
-
-        // Allow only numeric input
-        if (/^\d*$/.test(input)) {
-            setSelectedCourse((prev) => ({
-                ...prev,
-                course_id: input,
-            }));
-
-            // Check if the input is exactly 6 digits
-            if (input.length === 6) {
-                setError(false);
-                setErrorMessage('');
-            } else {
-                setError(true);
-                setErrorMessage('The ID must be exactly 6 digits.');
-            }
-        } else {
-            setError(true);
-            setErrorMessage('Only numeric values are allowed.');
-        }
-    };
-
     const handleChangeCourse = async () => {
         try {
           // Call the backend to update the course
+          console.log(error.course_id)
+          if (error.course_id) {
+            Swal.fire({
+              title: "Please check your input",
+              text: "Course ID must be exactly 6 digits",
+              icon: "error",
+              timer: 1500,
+              customClass: {
+                popup: "swal-popup",
+              },
+            });
+            return;
+        }
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/update`, // Adjust to match your API route
             {
@@ -210,24 +202,7 @@ function Page() {
         setChangeOpen(false);
     }
 
-    const validateCourseId = (value) => {
-        if (!/^\d*$/.test(value)) {
-          return 'Course ID must be a number';
-        }
-        if (!value) {
-          return 'Course ID is required';
-        }
-        return '';
-      };
-    
-      const validateCourseName = (value) => {
-        if (!value.trim()) {
-          return 'Course Name is required';
-        }
-        return '';
-      };
-
-      const handleAddCourse = async () => {
+    const handleAddCourse = async () => {
         if (error.courseId || courseId == "" || courseName == "") {
             Swal.fire({
                 title: "Please check your input",
@@ -289,8 +264,20 @@ function Page() {
             }
         }
     };
-    
-    
+
+    useEffect(() => {
+        fetchUser(); // Fetch user data when the component mounts
+    }, []);
+
+    useEffect(() => {
+       console.log("test")
+        if (res==null) {
+            router.push("/login"); 
+        }
+    }, [res, router]);
+
+    const user = res?.cmuBasicInfo?.[0] || null; 
+
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -322,12 +309,90 @@ function Page() {
 
     return (
         <>
-        {pages == "courseconfig" 
-        ? (
+        {pages == "courseconfig" ? (
             <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages}/>
         ): pages == "attendance" ? (
              <Attendance course_id={selectcourseconfig} pages={pages} setPages={setPages }/>
-        ):( 
+        ) : studentRole === true ? (
+            <Box
+            sx={{
+                minHeight: '100vh',
+                bgcolor: '#8F16AD',
+                flexDirection: 'column',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
+            <Box
+                sx={{
+                    width: '80%',
+                    display: 'inline-flex',
+                    alignItems: 'baseline',
+                    mb: 2,
+                }}
+            >
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontFamily: 'Prompt',
+                        color: '#F2BEFF',
+                        fontStyle: 'italic',
+                    }}
+                >
+                    Hello!
+                </Typography>
+                <Typography
+                    variant="h6"
+                    sx={{
+                        fontFamily: 'Prompt',
+                        color: 'white',
+                        ml: 1,
+                        fontStyle: 'italic',
+                    }}
+                >
+                    {user.firstname_TH} {user.lastname_TH}
+                </Typography>
+            </Box>
+
+            <Card
+                sx={{
+                    minHeight: '80vh',
+                    width: '80%',
+                    padding: 4,
+                    borderRadius: 4,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    position: 'relative',
+                    justifyContent: 'center', // Center vertically
+                    alignItems: 'center', // Center horizontally
+                }}
+            >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                        textAlign: 'start',
+                        width: '100%', // Ensure full width
+                    }}
+                >
+                    <Typography 
+                        variant="h5" // Increase text size
+                        sx={{
+                            fontWeight: 'bold', // Make it bold
+                            color: '#FF0000', // Optional: Change color
+                        }}
+                    >
+                        Access Denied, Please Contact Admin
+                    </Typography>
+                </Box>
+            </Card>
+
+        </Box>
+        ) : (
         <Box
             sx={{
                 minHeight: '100vh',
@@ -459,21 +524,21 @@ function Page() {
 
             {/* Dialog for Adding Course */}
             <Dialog 
-    open={addOpen} 
-    onClose={handleClose}
-    sx={{ 
-        display: 'flex',
-        alignItems: 'center', // Centers content vertically
-        justifyContent: 'center', // Centers content horizontally
-        '& .MuiDialog-paper': { // Targets the dialog box itself
-            width: { xs: '250px', sm: '400px', md: '500px' },
-            // display: 'flex',
-            // flexDirection: 'column',
-            // alignItems: 'center', // Centers content inside
-            // textAlign: 'center'
-        }
-    }} 
->
+                open={addOpen} 
+                onClose={handleClose}
+                sx={{ 
+                    display: 'flex',
+                    alignItems: 'center', // Centers content vertically
+                    justifyContent: 'center', // Centers content horizontally
+                    '& .MuiDialog-paper': { // Targets the dialog box itself
+                        width: { xs: '250px', sm: '400px', md: '500px' },
+                        // display: 'flex',
+                        // flexDirection: 'column',
+                        // alignItems: 'center', // Centers content inside
+                        // textAlign: 'center'
+                    }
+                }} 
+            >
                 <DialogTitle  
                   
                 >
@@ -614,6 +679,7 @@ function Page() {
                     >
                         Course ID
                     </Typography>
+                    
                     <TextField
                         fullWidth
                         value={selectedCourse.course_id}
@@ -629,6 +695,7 @@ function Page() {
                             },
                         }}
                     />
+                    
                     <Typography
                         sx={{
                             fontFamily: 'Prompt',
@@ -707,18 +774,47 @@ function Page() {
                     
                     <TextField
                         fullWidth
-                        value={selectedCourse.course_id}
-                        onChange={handleInputChange}
-                        error={error}
-                        helperText={error ? errorMessage : ''}
-                        sx={{
-                            mb: 2,
-                            '& .MuiInputBase-root': {
-                                backgroundColor: '#EDEDED',
-                                borderRadius: 4,
-                                border: '1px solid #D9D9D9',
-                            },
+                        value={selectedCourse?.course_id || ""}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                            setSelectedCourse((prev) => ({
+                                ...prev,
+                                course_id: value,
+                            }));
+
+                            if (value.length === 6) {
+                                setError((prev) => ({ ...prev, courseId: '' }));
+                            } else {
+                                setError((prev) => ({
+                                ...prev,
+                                courseId: 'Course ID must be exactly 6 digits',
+                                }));
+                            }
+                            } else {
+                            setError((prev) => ({
+                                ...prev,
+                                courseId: 'Course ID must be numeric',
+                            }));
+                            }
                         }}
+                        error={!!error.courseId}
+                        helperText={error.courseId}
+                    sx={{
+                        mb: 2,
+                        '& .MuiInputBase-root': {
+                            backgroundColor: '#EDEDED',
+                            borderRadius: 4,
+                            border: '1px solid #D9D9D9',
+                        },
+                        '& .MuiInputLabel-root': {
+                            fontFamily: 'Prompt',
+                        },
+                        '& .MuiInputBase-input': {
+                            fontFamily: 'Prompt',
+                        },
+                    }}
+
                     />
 
                     <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'Bold', color: '#8F16AD', mb: 1, fontSize: {xs:"16px",sm:"20px"}, }}>
