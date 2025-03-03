@@ -40,7 +40,6 @@ export async function GET(req) {
     const files = await prisma.file.findMany({
       where: { 
         course_id: courseId, 
-        file_name: `attendance_data_${courseId}.xlsx`, 
       },
       select:{
         file_url: true,
