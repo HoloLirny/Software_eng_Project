@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../../prisma/prisma";
 
-// http://localhost:3000/api/file-api/get/get_by_id?course_id=001001
+// http://localhost:3000/api/file-api/get/get_path_by_id?course_id=261361
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -14,10 +14,17 @@ export async function GET(req) {
       );
     }
 
-    // Fetch files by course_id
+      // Fetch files by course_id
     const files = await prisma.file.findMany({
-      where: { course_id: courseId },
+      where: { 
+        course_id: courseId, 
+        file_name: `attendance_data_${courseId}.xlsx`, 
+      },
+      select:{
+        file_url: true,
+      }
     });
+
 
     if (files.length === 0) {
       return NextResponse.json(

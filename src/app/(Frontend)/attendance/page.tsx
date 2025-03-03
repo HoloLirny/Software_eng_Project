@@ -17,6 +17,7 @@ import {
   Modal,
   TextField,
   Typography,
+  Grid,
 } from "@mui/material";
 import { Plus } from "lucide-react";
 import DatePicker from "react-datepicker";
@@ -24,33 +25,74 @@ import "react-datepicker/dist/react-datepicker.css";
 import SettingsIcon from '@mui/icons-material/Settings';
 import CloseIcon from '@mui/icons-material/Close';
 import QRgen from '../qrgen/page'
+import { POST } from "@/app/api/signIn/route";
 
 function Page({ course_id = "261361", pages, setPages }) {
   const [columns, setColumns] = useState([]);
   const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
   const [attendanceData, setAttendanceData] = useState([]); // Store attendance API response
-  const [addDateModalOpen, setaddDateModalOpen] = useState(false);
-  const [genQRModalOpen, setGenQRModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState("");
   const [detail, setDetail] = useState("");
   const [generateQRDate, setGenerateQRDate] = useState("");
   const [generateQRDetail, setGenerateQRDetail] = useState("");
+  const [formData, setFormData] = useState({
+    student_id: '',
+    student_name: '',
+    student_email: '',
+    section_lec: 0,
+    section_lab: 0,
+  });
+
+  const [addDateModalOpen, setaddDateModalOpen] = useState(false);
+  const [genQRModalOpen, setGenQRModalOpen] = useState(false);
   const [qrConfigModalOpen, setQrConfigModalOpen] = useState(false);
+  const [editDateModalOpen, setEditDateModalOpen] = useState(false);
+  const [addStudentModalOpen, setAddStudentModalOpen] = useState(false);
+
+  const [page,setPage] = useState("attendance");
+  
+  const [oldDate, setOldDate] = useState("")
+  const [oldDetail, setOldDetail] = useState("")
+  
   const [inputActiveTime, setInputActiveTime] = useState(10);
   const [inputRefreshTime, setInputRefreshTime] = useState(5);
-  const [page,setPage] = useState("attendance");
   const [time, setTime] = useState(60 * 10); // 10 minutes
   const [mode, setMode] = useState("time");
   const [expireTime, setExpireTime] = useState(5) // 5 seconds
-  
   const COLUMN_WIDTH = 150;
+  
+  const handleEditDateModal = () => {
+    setEditDateModalOpen(true);
+    setSelectedDate(generateQRDate)
+    setDetail(generateQRDetail)
+    setOldDate(generateQRDate)
+    setOldDetail(generateQRDetail)
+  }
+
+  const handleCloseEditDateModal = () => {
+    setSelectedDate(null)
+    setOldDate("")
+    setDetail("")
+    setOldDetail("")
+    setEditDateModalOpen(false);
+  }
+
+  const handleAddStudentModal = () => {
+    setAddStudentModalOpen(true);
+  }
+
+  const handleCloseAddStudentModal = () => {
+    setAddStudentModalOpen(false);
+  }
 
   const handleOpenQrConfigModal = () => setQrConfigModalOpen(true);
+
   const handleCloseQrConfigModal = () => {
     setExpireTime(inputRefreshTime);
     setTime(inputActiveTime * 60);
     setQrConfigModalOpen(false);
   }
+
   const handleOpenGenQRModal = (date, detail) => {
     setGenerateQRDate(date);
     setGenerateQRDetail(detail);
@@ -81,6 +123,110 @@ function Page({ course_id = "261361", pages, setPages }) {
   const handleRefreshTimeChange = (e) => {
     const value = Math.max(0, e.target.value); // Prevent values less than 0
     setInputRefreshTime(value);
+  };
+
+  const handleDateChange = (date) => {
+    if (date) {
+      setSelectedDate(date.toISOString().split("T")[0]); // Converts to "YYYY-MM-DD"
+    }
+  };
+
+  const editDate = async () => {
+    if (selectedDate == "") return;
+    try {
+      const response = await fetch('/api/attendance-api/edit_date', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ date_old: oldDate, date_new: selectedDate, description_new: detail, course_id }),
+      })
+
+      if (!response.ok){
+        const errorData = await response.json();
+        alert(errorData.message);
+        return;
+      }
+      alert("Date Edited Successfully");
+      fetchColumns();
+      fetchAttendanceData();
+      fetchStudenInClass();
+      handleCloseEditDateModal();
+      handleCloseGenQRModal();
+    } catch (error) {
+      console.error("Error adding column:", error);
+      alert("An error occurred while editing the date.");
+    }
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  function validateEmail (email: string) {
+    const cmuRegex = /^[a-zA-Z0-9._%+-]+@cmu.ac.th$/;
+    return cmuRegex.test(email);
+  }
+
+  const isValidStudentId = (id) => {
+    // Check if id is a string and contains exactly 9 digits
+    return /^[1-9]\d{8}$/.test(id);
+  };
+
+  const handleSubmit = async () => {
+    // Handle form submission
+    if (!isValidStudentId(formData.student_id)) {
+      return;
+    }
+
+    if (!validateEmail(formData.student_email)) {
+      console.log("invalid email format")
+      return;
+    }
+
+    if(isNaN(formData.section_lab)) {
+      console.log("section_lab must be a number")
+      return;
+    }
+
+    if(isNaN(formData.section_lec)) {
+      console.log("section_lec must be a number")
+      return;
+    }
+
+    console.log(formData)
+    try {
+      const response = await fetch('/api/student-api/add', {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          student_id: formData.student_id,
+          student_name: formData.student_name,
+          student_email: formData.student_email,
+          section_lec: formData.section_lec,
+          section_lab: formData.section_lab,
+          course_id: course_id,
+        })
+      
+      })
+
+      if(!response.ok) {
+        console.error("error")
+        return;
+      }
+      
+      fetchStudenInClass();
+      fetchAttendanceData();
+      alert("Student added successfully");
+      setAddStudentModalOpen(false); // Close the modal after submission
+    } catch (error) {
+      console.error("Error adding student:", error);
+      alert("An error occurred while adding the student")
+    }
   };
 
   const fetchStudenInClass = async () => {
@@ -141,7 +287,6 @@ function Page({ course_id = "261361", pages, setPages }) {
         label: date.date,
         description: date.description,
       }));
-
       setColumns([{ id: 0, label: "ID" }, { id: 1, label: "Name" }, ...formattedColumns]);
     } catch (error) {
       console.error("Error fetching columns:", error);
@@ -151,16 +296,13 @@ function Page({ course_id = "261361", pages, setPages }) {
 
   // Add Date Column
   const handleAddColumn = async () => {
-    if (!selectedDate) return;
+    if (selectedDate == "") return;
 
     try {
-      selectedDate.setHours(12, 0, 0, 0);
-      const formattedDate = selectedDate.toISOString().split("T")[0];
-
       const response = await fetch("/api/attendance-api/add_date", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: formattedDate, description: detail, course_id }),
+        body: JSON.stringify({ date: selectedDate, description: detail, course_id }),
       });
 
       const data = await response.json();
@@ -185,11 +327,59 @@ function Page({ course_id = "261361", pages, setPages }) {
     );
   };
 
-  const handleAddStudent = () => {
-    const student_id = "651651651";
-    const student_name = "New student";
+  // Export file methods
+  const exportFile = async () => {
+    try {
+      const reponse = await fetch(
+        `/api/attendance-api/export_attendance_to_excel?course_id=${course_id}`
+      );
+      if(!reponse.ok){
+        const errorData = await reponse.json();
+        alert(errorData.message);
+        return;
+      }
+      const data = await reponse.json();
+      const fileUrl = data.fileUrl;
+      downloadFile(fileUrl);
+    } catch (error) {
+      console.error("Error exporting file:", error);
+      alert("An error occurred while exporting the file.");
+    }
+  }
 
-    setStudents([...students, { id: student_id, name: student_name }]);
+  const removePublicFromUrl = (url) => {
+    return url.replace("/public", "");
+  };
+
+  const getFileName = (filePath) => {
+    return filePath.split("/").pop(); // Gets the last part after "/"
+  };
+
+  const downloadFile = async (fileUrl) => {
+
+    const cleanedPath = removePublicFromUrl(fileUrl);
+    const filename = getFileName(cleanedPath);
+
+    try {
+      const response = await fetch(cleanedPath);
+      if (!response.ok) {
+        throw new Error("Failed to fetch file");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
   }
 
   useEffect(() => {
@@ -213,32 +403,66 @@ function Page({ course_id = "261361", pages, setPages }) {
           overflowX: "auto",
         }}
       >
-        <Button onClick={() => setPage("qrGen")}>QR Gen</Button>
-      <Button
-        onClick={() => setPages("courseconfig")}
-        sx={{
-            position: 'absolute',
-            top: 16,
-            left: 16,
-            color: '#8F16AD',
-            backgroundColor: '#fff',
-            fontWeight: 'bold',
-            borderRadius: 2,
-            '&:hover': {
-                backgroundColor: '#f5f5f5',
-            },
-        }}
-      >
-        Back
-      </Button>
+      <Box>
+        <Button
+      onClick={() => setPages("courseconfig")}
+      sx={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          color: '#8F16AD',
+          backgroundColor: '#fff',
+          fontWeight: 'bold',
+          borderRadius: 2,
+          '&:hover': {
+              backgroundColor: '#f5f5f5',
+          },
+      }}
+    >
+      Back
+    </Button>
 
-      <Box sx={{ flexDirection: "row", display: "flex" }}>
-        <Button variant="contained" color="secondary" sx={{ marginBottom: 2 }} onClick={handleAddStudent}>
+    <Box
+      sx={{
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 24,
+        position: 'absolute',
+        top: 16, // Align vertically with the button
+        left: '50%', // Center horizontally
+        transform: 'translateX(-50%)', // Offset by 50% of its width to truly center it
+        marginBottom: 2,
+      }}
+    >
+      Attendance
+    </Box>
+
+    <Button
+      variant="contained"
+      color="secondary"
+      sx={{
+        position: 'absolute',
+        top: 16, // Align with Attendance
+        right: 16, // Position on the right
+        marginBottom: 2,
+      }}
+      onClick={exportFile}
+    >
+      Export
+    </Button>
+      </Box>
+      
+      {/* These buttons will now be placed below the "Back" button */}
+      <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: 2 }}>
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={{ marginBottom: 2, flex: 1 }} // This makes the button take available space on the left
+          onClick={handleAddStudentModal}
+        >
           Add student
         </Button>
-        <Box sx={{ color: "white", fontWeight: "bold", fontSize: 24, marginBottom: 2 }}>
-          Attendance
-        </Box>
+
         <IconButton 
           color="primary" 
           onClick={handleOpenaddDateModal} 
@@ -256,6 +480,8 @@ function Page({ course_id = "261361", pages, setPages }) {
           <Plus size={40} />
         </IconButton>
       </Box>
+
+
 
       {/* Table */}
       <TableContainer
@@ -367,7 +593,9 @@ function Page({ course_id = "261361", pages, setPages }) {
           </IconButton>
           <h2 style={{ color: "#8F16AD", fontWeight: "bold" }}>Select Date</h2>
 
-          <DatePicker selected={selectedDate} onChange={setSelectedDate} inline />
+          <DatePicker selected={selectedDate ? new Date(selectedDate) : null} 
+            onChange={handleDateChange} 
+            inline />
 
           <h3 style={{ color: "#8F16AD", fontWeight: "bold", marginTop: "10px" }}>Detail</h3>
           <TextField fullWidth value={detail} onChange={(e) => setDetail(e.target.value)} />
@@ -427,13 +655,14 @@ function Page({ course_id = "261361", pages, setPages }) {
             </Typography>
 
             {/* Settings Icon - Top Right */}
-            <IconButton size="small" onClick={handleOpenQrConfigModal}>
+            <IconButton size="small" onClick={handleEditDateModal}>
               <SettingsIcon />
             </IconButton>
+
           </Box>
           <Typography variant="h6" style={{ color: "#8F16AD", fontWeight: "bold", marginTop: 2}}> {generateQRDate} </Typography>
           {generateQRDetail === "" ? <></> : <Typography variant="h6" style={{ color: "#8F16AD", fontWeight: "bold" }}> {generateQRDetail} </Typography>}
-          <Button variant="contained" color="secondary" sx={{marginTop: 4}} onClick={() =>  {setPages("qrGen");}}>
+          <Button variant="contained" color="secondary" sx={{marginTop: 4}} onClick={handleOpenQrConfigModal}>
             Generate QR
           </Button>
         </Box>
@@ -491,15 +720,181 @@ function Page({ course_id = "261361", pages, setPages }) {
           />
 
           {/* Submit Button */}
-          <Button variant="contained" color="primary" fullWidth onClick = {handleCloseQrConfigModal}>
-            Save
+          <Button variant="contained" color="primary" fullWidth onClick = {() => setPage("qrGen")}>
+            Generate QR code
           </Button>
         </form>
         </Box>
       </Modal>
 
+      {/* editDateModal for Adding Date */}
+      <Modal open={editDateModalOpen} onClose={handleCloseEditDateModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "white",
+            p: 4,
+            borderRadius: 2,
+            boxShadow: 24,
+            width: "300px",
+            textAlign: "center",
+          }}
+        >
+          {/* Close (X) Button - Top Left */}
+          <IconButton 
+            sx={{ position: 'absolute', top: 8, left: 8 }} 
+            size="small" 
+            onClick={handleCloseEditDateModal}
+          >
+            <CloseIcon />
+          </IconButton>
+          <h2 style={{ color: "#8F16AD", fontWeight: "bold" }}>Select Date</h2>
+
+          <DatePicker selected={selectedDate ? new Date(selectedDate) : null} 
+            onChange={handleDateChange} 
+            inline />
+
+          <h3 style={{ color: "#8F16AD", fontWeight: "bold", marginTop: "10px" }}>Detail</h3>
+          <TextField fullWidth value={detail} onChange={(e) => setDetail(e.target.value)} />
+
+          <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+            <Button variant="contained" color="secondary" onClick={editDate}>
+              Save
+            </Button>
+            <Button variant="contained" color="inherit" onClick={handleCloseEditDateModal}>
+              Cancel
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* add student modal */}
+      <Modal open={addStudentModalOpen} onClose={handleCloseAddStudentModal}>
+      <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'white',
+            p: 4,
+            borderRadius: 2,
+            boxShadow: 24,
+            width: '400px',
+            textAlign: 'center',
+          }}
+        >
+          {/* Close (X) Button - Top Left */}
+          <IconButton
+            sx={{ position: 'absolute', top: 8, left: 8 }}
+            size="small"
+            onClick={handleCloseAddStudentModal}
+          >
+            <CloseIcon />
+          </IconButton>
+          
+          <h2 style={{ color: '#8F16AD', fontWeight: 'bold', marginBottom: 4 }}>Add Student</h2>
+
+          <form>
+            {/* Student ID Field */}
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item xs={4}>
+                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student ID</h3>
+              </Grid>
+              <Grid item xs={8}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                name="student_id"
+                value={formData.student_id}
+                onChange={handleChange}
+                type="text" // Change to text to preserve leading zeros
+                required
+              />
+              </Grid>
+            </Grid>
+
+            {/* Student Name Field */}
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item xs={4}>
+                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student Name</h3>
+              </Grid>
+              <Grid item xs={8}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  name="student_name"
+                  value={formData.student_name}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+            </Grid>
+
+            {/* Student Email Field */}
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item xs={4}>
+                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student Email</h3>
+              </Grid>
+              <Grid item xs={8}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  name="student_email"
+                  value={formData.student_email}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+            </Grid>
+
+            {/* Section (Lecture) Field */}
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item xs={4}>
+                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Section (Lecture)</h3>
+              </Grid>
+              <Grid item xs={8}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  name="section_lec"
+                  value={formData.section_lec}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+            </Grid>
+
+            {/* Section (Lab) Field */}
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item xs={4}>
+                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Section (Lab)</h3>
+              </Grid>
+              <Grid item xs={8}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  name="section_lab"
+                  value={formData.section_lab}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+            </Grid>
+
+            {/* Submit Button */}
+            <Button variant="contained" color="primary" fullWidth onClick={handleSubmit}>
+              Submit
+            </Button>
+          </form>
+        </Box>
+      </Modal>
+
       </Box>):(
-        <QRgen time={200} mode={'time'} expireTime={1} courseId={"261336"}/>
+        <QRgen time={time} mode={mode} expireTime={expireTime} courseId={course_id}/>
       )
       }
     </>

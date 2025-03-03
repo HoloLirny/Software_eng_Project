@@ -64,17 +64,35 @@ export async function POST(request) {
     const fileBuffer = Buffer.from(await file.arrayBuffer());
     await fs.writeFile(filePath, fileBuffer);
 
-    // Save file metadata to the database
-    const savedFile = await prisma.file.create({
-      data: {
+    const existingFile = await prisma.file.findFirst({
+      where: {
         file_name: file.name,
-        file_url: `/uploads/${file.name}`,
         course_id: courseId,
-        uploaded_by: teacher_id,
       },
     });
+    
+    if (existingFile) {
+      const updatedFile = await prisma.file.update({
+        where: { id: existingFile.id },
+        data: {
+          file_url: `/public/uploads/${file.name}`,
+          uploaded_by: teacher_id,
+        },
+      });
+      console.log("File updated:", updatedFile);
+    } else {
+      const savedFile = await prisma.file.create({
+        data: {
+          file_name: file.name,
+          file_url: `/public/uploads/${file.name}`,
+          course_id: courseId,
+          uploaded_by: teacher_id,
+        },
+      });
+      console.log("File uploaded successfully:", savedFile);
+    }
 
-    return NextResponse.json({ success: true, data: savedFile });
+    return NextResponse.json({ success: true, fileUrl: `/public/uploads/${file.name}` });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "File upload failed" }, { status: 500 });

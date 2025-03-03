@@ -4,7 +4,29 @@ import prisma from "../../../../../prisma/prisma";
 export async function PUT(req) {
   try {
     // Parse the JSON body to get the course data and ID
-    const { id, student_name, student_id, student_email } = await req.json();
+    const { id, student_name, student_id, student_email, user_email } = await req.json();
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email }
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
+      );
+    }
 
     // Validate that the required fields are provided
     if (!id) {

@@ -95,8 +95,7 @@ function Page({ course_id, pages, setPages }) {
 
     function validateEmail (email: string) {
         const cmuRegex = /^[a-zA-Z0-9._%+-]+@cmu.ac.th$/;
-        const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail.com$/;
-        return cmuRegex.test(email) || gmailRegex.test(email);
+        return cmuRegex.test(email);
     }
 
     const confirmDeleteTA = (index: number) => {
@@ -247,7 +246,7 @@ function Page({ course_id, pages, setPages }) {
         <Box
             sx={{
                 minHeight: '100vh',
-                bgcolor: '#8F16AD',
+                background: 'linear-gradient(#8f16ad, #560d69)',
                 flexDirection: 'column',
                 display: 'flex',
                 justifyContent: 'center',
@@ -275,24 +274,24 @@ function Page({ course_id, pages, setPages }) {
             <Card
                 sx={{
                     minHeight: '80vh',
-                    width: '75%',
+                    width: '80%',
                     padding: 4,
                     borderRadius: 4,
                     display: 'flex',
-                    flexDirection: 'row',
+                    flexDirection: 'column',
                     gap: 2,
                     position: 'relative',
                 }}
             >
                 <Grid container spacing={2}>
-                    <Grid size={{xs:12,lg:4}}>
+                    <Grid size={{xs:12,lg:5}}>
                         {/* TA box */}
-                            <Box sx = {{ flexDirection: 'column', width: '45%', mr: 'auto'}}>
+                            <Box sx = {{ flexDirection: 'column', width: '100%'}}>
                                 {/* Add TA Box */}
                                 {role == 'TEACHER' ?
                                     <Box
                                         sx={{
-                                            border: '1px solid #8F16AD',
+                                            border: '2px solid #d072e8',
                                             borderRadius: 2,
                                             padding: 2,
                                             bgcolor: '#F5F5F5',
@@ -335,7 +334,8 @@ function Page({ course_id, pages, setPages }) {
                                                         bgcolor: '#8F16AD',
                                                         color: '#fff',
                                                         fontWeight: 'bold',
-                                                        '&:hover': { bgcolor: '#7B1395' },
+                                                        '&:hover': { bgcolor: '#7B1395',
+                                                         },mt : 1
                                                     }}
                                                     onClick={() => handleCreateButton()}>
                                                     Create
@@ -358,7 +358,7 @@ function Page({ course_id, pages, setPages }) {
                                                         {!validateEmail(email) && email.length > 0 ? <Typography sx={{ color: 'red', fontSize: '0.8rem' }}>Please input valid email</Typography> : <Box></Box>}
                                                     </DialogContent>
                                                     <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
-                                                        <Button sx={{ bgcolor: '#8F16AD', color: '#fff', fontWeight: 'bold' }} onClick={pressAddTAButton}>
+                                                        <Button sx={{ bgcolor: '#8F16AD', color: '#fff', fontWeight: 'bold', width: 100, fontSize : "1rem" }} onClick={pressAddTAButton}>
                                                             ADD
                                                         </Button>
                                                         <Button sx={{ bgcolor: 'red', color: '#fff', fontWeight: 'bold' }} onClick={pressCancelButton}>
@@ -375,12 +375,12 @@ function Page({ course_id, pages, setPages }) {
                                 }
 
                                 {/* TA List */}
-                                <List sx={{ mt: 2 }}>
+                                <List sx={{ mt: 2, width: '100%' }}>
                                     <Box sx={{ width: '100%', textAlign: 'left', position: 'relative', pb: 1 }}>
-                                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#8F16AD' }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#d072e8' }}>
                                             TA list
                                         </Typography>
-                                        <Box sx={{ width: '100%', height: '2px', bgcolor: '#8F16AD', mt: 0.5 }} />
+                                        <Box sx={{ width: '100%', height: '2px', bgcolor: '#d072e8', mt: 0.5 }} />
                                     </Box>
 
                                     <Box sx = {{ maxHeight: 250, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
@@ -414,16 +414,16 @@ function Page({ course_id, pages, setPages }) {
                             </Box>
                     </Grid>
                 
-                    <Grid size={{xs:12,lg:8}}>
+                    <Grid size={{xs:12,lg:7}}>
 
                     {/* File Box */}
-                        <Box sx = {{flexDirection: 'column',width: '50%', ml: 'auto'}}>
+                        <Box sx = {{flexDirection: 'column',width: '90%', ml: 'auto', mr: 'auto'}}>
                             {/* Upload files box */}
                             <Box sx={{
                                 border: '2px dashed #8F16AD',
                                 padding: 3,
                                 borderRadius: 2,
-                                bgcolor: '#F5F5F5',
+                                bgcolor: '#f9dfff',
                                 textAlign: 'center',
                             }}>
 
@@ -436,20 +436,24 @@ function Page({ course_id, pages, setPages }) {
 
                                 <Box
                                     sx={{
-                                        border: '1px solid #8F16AD',
-                                        borderRadius: 2,
+                                        border: '2px solid #8F16AD',
+                                        borderRadius: 3,
                                         padding: 3,
+                                        align : 'center',
+                                        minHeight: 225,
                                         mt: 2,
+                                        
                                         bgcolor: '#fff',
+                                        alignItems: 'center',
                                         textAlign: 'center',
                                         cursor: 'pointer',
                                     }}
                                     onDragOver={(e) => e.preventDefault()}
                                     onDrop={handleDrop}
                                 >
-                                    <Typography sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Drag files <b>here</b></Typography>
-                                    <Typography>or</Typography>
-                                    <Button variant="contained" component="label" sx={{ mt: 1, bgcolor: '#8F16AD' }}>
+                                    <Typography sx={{ color: '#8F16AD', fontWeight: 'bold' ,fontSize: '1.3rem'}}>Drag files <b>here</b></Typography>
+                                    <Typography sx={{ fontSize: '1.2rem'}}>or</Typography>
+                                    <Button variant="contained" component="label" sx={{ mt: 2, bgcolor: '#8F16AD',fontSize: '1.2rem' }}>
                                         Browse
                                         <input hidden type="file" accept=".xls,.xlsx" onChange={handleFileUpload} />
                                     </Button>

@@ -8,7 +8,7 @@ import QRCode from "qrcode";
 import Image from 'next/image';
 import iconimg from '../../../../public/icon.png';
 
-function Page(time,mode,expireTime,courseId) {
+function Page({time, mode, expireTime, courseId}) {
     // const time = 200;
     // const mode = 'time';
     // const expireTime = 1;
