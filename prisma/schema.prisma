@@ -10,7 +10,6 @@ datasource db {
 model user {
   id             Int             @id @default(autoincrement())
   email          String          @unique(map: "User_email_key")
-  password       String?
   user_role      user_user_role? @default(TEACHER)
   uploaded_files file[]
   user_courses   user_course[]

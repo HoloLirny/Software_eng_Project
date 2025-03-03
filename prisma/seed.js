@@ -17,7 +17,6 @@ async function main() {
     update: {},
     create: {
       email: "teacher@example.com",
-      password: "12345678",
       user_role: "TEACHER",
     },
   });
@@ -28,7 +27,6 @@ async function main() {
     update: {},
     create: {
       email: "admin@example.com",
-      password: "12345678",
       user_role: "ADMIN",
     },
   });
@@ -39,7 +37,6 @@ async function main() {
     update: {},
     create: {
       email: "ta@example.com",
-      password: "12345678",
       user_role: "TA",
     },
   });

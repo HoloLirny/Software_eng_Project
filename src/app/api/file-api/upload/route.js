@@ -8,38 +8,35 @@ const uploadDir = path.join(process.cwd(), "public/uploads");
 
 export async function POST(request) {
   try {
-    ////////////////////////////////////////////////////
-    // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
+    // Parse the form data
+    const formData = await request.formData();
+    const file = formData.get("file");
+    const courseId = formData.get("course_id");
+    const user_email = formData.get("user_email");
 
+    ////////////////////////////////////////////////////
     const teacher = await prisma.user.findUnique({
-      where: { id: teacher_id },
-      select: { user_role: true },
+      where: { email: user_email },
     });
 
     if (!teacher) {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} not found`,
+          message: `User with email ${user_email} not found`,
         }),
         { status: 404 }
       );
     }
-    // Only teacher can add file
+
     if (teacher.user_role !== "TEACHER") {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} is not a TEACHER`,
+          message: `User with email ${user_email} is not a TEACHER`,
         }),
         { status: 403 }
       );
     }
     ////////////////////////////////////////////////////
-    
-    // Parse the form data
-    const formData = await request.formData();
-    const file = formData.get("file");
-    const courseId = formData.get("course_id");
 
     if (!file || !file.name || !courseId) {
       return NextResponse.json(
@@ -57,7 +54,7 @@ export async function POST(request) {
         { error: `Course with ID ${courseId} not found` },
         { status: 404 }
       );
-    };
+    }
 
     // Save the file to the server
     const filePath = path.join(uploadDir, file.name);
@@ -70,13 +67,13 @@ export async function POST(request) {
         course_id: courseId,
       },
     });
-    
+
     if (existingFile) {
       const updatedFile = await prisma.file.update({
         where: { id: existingFile.id },
         data: {
           file_url: `/public/uploads/${file.name}`,
-          uploaded_by: teacher_id,
+          uploaded_by: teacher.id,
         },
       });
       console.log("File updated:", updatedFile);
@@ -86,13 +83,16 @@ export async function POST(request) {
           file_name: file.name,
           file_url: `/public/uploads/${file.name}`,
           course_id: courseId,
-          uploaded_by: teacher_id,
+          uploaded_by: teacher.id,
         },
       });
       console.log("File uploaded successfully:", savedFile);
     }
 
-    return NextResponse.json({ success: true, fileUrl: `/public/uploads/${file.name}` });
+    return NextResponse.json({
+      success: true,
+      fileUrl: `/public/uploads/${file.name}`,
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "File upload failed" }, { status: 500 });

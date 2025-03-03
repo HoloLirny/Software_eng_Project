@@ -1,16 +1,37 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../../../prisma/prisma"; 
+import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/ta-api/update
 export async function PUT(req) {
   try {
-    // Parse the JSON body to get the course data and ID
-    const { id, course_id, email } = await req.json();
+    const { id, course_id, email, user_email } = await req.json();
 
     // Validate that the required fields are provided
-    if (!id) {
+    if (!id || !user_email) {
       return NextResponse.json(
-        { error: "id are required fields." },
+        { error: "id and user_email are required fields." },
         { status: 400 }
+      );
+    }
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
       );
     }
 
@@ -20,10 +41,7 @@ export async function PUT(req) {
     });
 
     if (!existingta) {
-        return NextResponse.json(
-            { error: "ta not found" },
-            { status: 404 }
-        );
+      return NextResponse.json({ error: "ta not found" }, { status: 404 });
     }
 
     // Prepare the data to be updated, ensuring null values are allowed
@@ -35,6 +53,17 @@ export async function PUT(req) {
 
     // If a course_id is provided, check if it's already assigned
     if (course_id !== undefined) {
+      const course = await prisma.course.findUnique({
+        where: { course_id: course_id },
+      });
+
+      if (!course) {
+        return NextResponse.json(
+          { error: "Course not found" },
+          { status: 404 }
+        );
+      }
+
       const isAlreadyAssigned = existingta.user_courses.some(
         (uc) => uc.course_id === course_id
       );
@@ -47,17 +76,17 @@ export async function PUT(req) {
             course_id,
           },
         });
-      }else{
+      } else {
         return NextResponse.json(
-            { error: "ta already assigned to this course" },
-            { status: 400 }
+          { error: "ta already assigned to this course" },
+          { status: 400 }
         );
       }
     }
 
     // Update the course using Prisma's update method
     const updateta = await prisma.user.update({
-      where: { id }, 
+      where: { id },
       data: updateData,
     });
 
@@ -67,9 +96,6 @@ export async function PUT(req) {
     });
   } catch (error) {
     console.error("Error updating ta:", error);
-    return NextResponse.json(
-      { error: "Error updating ta" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error updating ta" }, { status: 500 });
   }
 }
