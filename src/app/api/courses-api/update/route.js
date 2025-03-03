@@ -63,7 +63,6 @@ export async function PUT(req) {
     };
 
     // Update the course using Prisma's update method
-    console.log(id)
     const updatedCourse = await prisma.course.update({
       where: { id }, 
       data: updateData,

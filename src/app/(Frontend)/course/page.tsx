@@ -23,7 +23,6 @@ import './style.css';
 import CourseConfig from '../courseConfig/page'
 import { useAuthStore } from "@/app/store/useAuthStore";
 import Attendance from '../attendance/page'
-import { useRouter } from "next/navigation";
 
 interface Course {
     course_id : number;
@@ -31,19 +30,15 @@ interface Course {
     id : number;
     scan_time : string;
     teacher_id : number;
-   
+    total_student : number;
 }
 
 function Page() {
-    const router = useRouter();
     const res = useAuthStore((state) => state.user);
-    const fetchUser = useAuthStore((state) => state.fetchUser);
-    console.log("respnce ",res)
-   
-
+    const user = res.cmuBasicInfo[0] ;
     // const studentRole = user.itaccounttype_EN === "Student Account";
-    // const studentRole = true;
-    const [studentRole, setStudentRole] = useState<string | null>(null);
+    const studentRole = false;
+
     // const user = res.cmuBasicInfo[0];
     const Swal = require('sweetalert2')
     const [addOpen, setAddOpen] = useState(false); // State for dialog visibility
@@ -53,7 +48,9 @@ function Page() {
     const [courseName, setCourseName] = useState<string>(''); // State for course Name
     const [courses, setCourses] = useState<Course>([]);
     const [changeOpen, setChangeOpen] = useState(false); // State for change dialog visibility
-    const [error, setError] = useState({ courseId: "" });
+    const [error, setError] = useState(false);
+    const [errorMessage, setErrorMesage] = useState('');
+    const [courseconfig,setCourseconsfig] = useState(false);
     const [selectcourseconfig,setSelectcourseconfig] = useState(null);
     const [pages, setPages] = useState("home"); // Manage page state
     
@@ -63,10 +60,13 @@ function Page() {
 
     const handleEditClick = (course) => {
         setSelectedCourse(course); // Store the selected course
-        // console.log("this is ",selectedCourse);
+        console.log("this is ",selectedCourse);
         setEditOpen(true);
     };
 
+    const handleChangeClick = () => {
+        setChangeOpen(true);
+    };
 
     const handleClose = () => {
         setAddOpen(false);
@@ -75,155 +75,159 @@ function Page() {
         setCourseName('');
     };
 
-    const handleChangeCourse = async () => {
-        try {
-            // Check for valid course_id
-            if (selectedCourse.course_id && selectedCourse.course_id.length !== 6) {
-                Swal.fire({
-                    title: "Please check your input",
-                    text: "Course ID must be exactly 6 digits",
-                    icon: "error",
-                    timer: 1500,
-                    customClass: {
-                        popup: "swal-popup",
-                    },
-                });
-                return;
+    const handleInputChange = (e) => {
+        const input = e.target.value;
+
+        // Allow only numeric input
+        if (/^\d*$/.test(input)) {
+            setSelectedCourse((prev) => ({
+                ...prev,
+                course_id: input,
+            }));
+
+            // Check if the input is exactly 6 digits
+            if (input.length === 6) {
+                setError(false);
+                setErrorMessage('');
+            } else {
+                setError(true);
+                setErrorMessage('The ID must be exactly 6 digits.');
             }
-    
-            // Make sure all necessary fields are provided
-            if (!selectedCourse.course_name || !selectedCourse.course_id || !selectedCourse.id) {
-                Swal.fire({
-                    title: "Error",
-                    text: "Course Name, Course ID, and Course ID are required.",
-                    icon: "error",
-                    timer: 1500,
-                    customClass: {
-                        popup: "swal-popup",
-                    },
-                });
-                return;
-            }
-    
-            // Send PUT request to update the course
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/update`, 
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        course_name: selectedCourse.course_name, // Include only fields you want to update
-                        course_id: selectedCourse.course_id,    
-                        id: selectedCourse.id,
-                        scan_time: selectedCourse.scan_time, // Optional
-                        teacher_id: selectedCourse.teacher_id, // Optional
-                        user_email: user.cmuitaccount, // Ensure you have user_email (probably from context or store)
-                    }),
-                }
-            );
-    
-            if (!response.ok) {
-                // Handle error response
-                const errorData = await response.text(); // Use text() to get raw response
-                throw new Error(errorData || "Failed to update the course");
-            }
-    
-            // Handle successful response
-            const data = await response.json();
-            console.log("Update response:", data);
-    
-            // Update the local course list to reflect the changes
-            const updatedCourses = courses.map((course) =>
-                course.id === selectedCourse.id ? { ...course, ...selectedCourse } : course
-            );
-    
-            setCourses(updatedCourses); // Update the course list in state
-    
-            Swal.fire({
-                title: "Success!",
-                text: "Course updated successfully.",
-                icon: "success",
-            });
-        } catch (error) {
-            console.error("Error updating course:", error);
-            Swal.fire({
-                title: "Error",
-                text: error.message || "Failed to update the course. Please try again later.",
-                icon: "error",
-            });
-        } finally {
-            setChangeOpen(false); // Close the dialog
-            setEditOpen(false);
-            setCourseId(""); // Reset course ID
-            setCourseName(""); // Reset course name
+        } else {
+            setError(true);
+            setErrorMessage('Only numeric values are allowed.');
         }
     };
+
+    const handleChangeCourse = async () => {
+        try {
+          // Call the backend to update the course
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/update`, // Adjust to match your API route
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                course_name: selectedCourse.course_name, // Include only fields you want to update
+                course_id: selectedCourse.course_id,    
+                id: selectedCourse.id,       
+            }),
+            }
+          );
+      
+          if (!response.ok) {
+            // Handle error response (e.g., 404 or 500)
+            const errorData = await response.text(); // Use text() to get raw response
+            throw new Error(errorData || "Failed to update the course");
+          }
+      
+          // Handle successful response
+          const data = await response.json();
+          console.log("Update response:", data);
+      
+          // Update the local course list to reflect the changes
+          const updatedCourses = courses.map((course) =>
+            course.id === courseId ? { ...course, name: courseName } : course
+          );
+      
+          setCourses(updatedCourses); // Update the course list
+          Swal.fire({
+            title: "Success!",
+            text: "Course updated successfully.",
+            icon: "success",
+          });
+        } catch (error) {
+          console.error("Error updating course:", error);
+          Swal.fire({
+            title: "Error",
+            text: error.message || "Failed to update the course. Please try again later.",
+            icon: "error",
+          });
+        } finally {
+          setChangeOpen(false); // Close the dialog
+          setEditOpen(false);
+          setCourseId(""); // Reset course ID
+          setCourseName(""); // Reset course name
+        }
+      };
       
       
     
     const handleDeleteCourse = async () => {
         Swal.fire({
-            title: "Are you sure?",
-            text: `You want to delete the course "${selectedCourse.course_name}"?`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Delete",
+          title: "Are you sure?",
+          text: "You want to delete " + courseName + "?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Delete",
         }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    // Make DELETE request to the backend
-                    const response = await fetch(
-                        `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/delete?course_id=${selectedCourse.course_id}&user_email=${user.cmuitaccount}`, // Include user_email in query params
-                        {
-                            method: "DELETE",
-                        }
-                    );
-    
-                    if (!response.ok) {
-                        throw new Error("Failed to delete the course");
-                    }
-    
-                    // Handle successful deletion
-                    const data = await response.json();
-                    console.log("Course deleted successfully:", data);
-    
-                    // Reset selected course and other state
-                    setSelectedCourse(null);
-                    setCourseId("");
-                    setCourseName("");
-    
-                    // Show success message
-                    Swal.fire({
-                        title: "Deleted!",
-                        text: `"${selectedCourse.course_name}" has been deleted.`,
-                        icon: "success",
-                    });
-                } catch (error) {
-                    console.error("Error deleting course:", error);
-                    Swal.fire({
-                        title: "Error",
-                        text: "Failed to delete the course. Please try again later.",
-                        icon: "error",
-                    });
+          if (result.isConfirmed) {
+            try {
+              // Make DELETE request to the backendสสส
+              const response = await fetch(   
+                `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/delete?course_id=${selectedCourse.course_id}`,
+                {
+                  method: "DELETE",
                 }
+              );
+      
+              if (!response.ok) {
+                throw new Error("Failed to delete the course");
+              }
+             
+              const data = await response.json();
+              setSelectedCourse("");
+              setCourseId("");
+              setCourseName("");
+              // Show success message
+              Swal.fire({
+                title: "Deleted!",
+                text: selectedCourse.course_name + " has been deleted.",
+                icon: "success",
+              });
+            } catch (error) {
+              console.error("Error deleting course:", error);
+              Swal.fire({
+                title: "Error",
+                text: "Failed to delete the course. Please try again later.",
+                icon: "error",
+              });
             }
+          }
         });
-    
+      
         // Close the dialog and reset state
         setEditOpen(false);
-    };
-    
+      
+      };
       
 
     const handleClosechange = () => {
         setChangeOpen(false);
     }
 
-    const handleAddCourse = async () => {
+    const validateCourseId = (value) => {
+        if (!/^\d*$/.test(value)) {
+          return 'Course ID must be a number';
+        }
+        if (!value) {
+          return 'Course ID is required';
+        }
+        return '';
+      };
+    
+      const validateCourseName = (value) => {
+        if (!value.trim()) {
+          return 'Course Name is required';
+        }
+        return '';
+      };
+
+      const handleAddCourse = async () => {
         if (error.courseId || courseId == "" || courseName == "") {
             Swal.fire({
                 title: "Please check your input",
@@ -242,7 +246,6 @@ function Page() {
             const addCourse = {
                 course_id: courseId,
                 course_name: courseName,
-                user_email:user.cmuitaccount
             };
     
             try {
@@ -286,73 +289,24 @@ function Page() {
             }
         }
     };
+    
+    
 
     useEffect(() => {
-        fetchUser(); // Fetch user data when the component mounts
-    }, []);
-
-    useEffect(() => {
-       console.log("test")
-        if (res==null) {
-            router.push("/login"); 
-        }
-    }, [res, router]);
-
-    const user = res?.cmuBasicInfo?.[0] || null; 
-    console.log("user",user)
-
-   
-
-      useEffect(() => {
-        const fetchRole = async () => {
-          if (!user?.cmuitaccount) return; // Ensure user is available before making the request
-      
+        const fetchCourses = async () => {
           try {
-            const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_BACKEND}/get_role`,
-              {
-                params: { email: user.cmuitaccount }, // Pass email as query param
-              }
+            const result = await axios.get(
+              `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/get/get_all_course`
             );
-      
-            console.log("Role response:", response.data);
-            
-            // Check if user_role is "STUDENT" and update state
-            setStudentRole(response.data);
+            console.log(result.data);
+            setCourses(result.data);
           } catch (error) {
-            console.error("Error fetching role:", error);
-            setStudentRole("STUDENT"); // Handle error case
+            console.error("Error fetching courses:", error);
           }
         };
-      
-        fetchRole();
-      }, [user]);
-
-      useEffect(() => {
-        const fetchCourses = async (userEmail: string) => {
-            try {
-                const result = await axios.get(
-                    `${process.env.NEXT_PUBLIC_BACKEND}/courses-api/get/get_by_user_email`,
-                    {
-                        params: { user_email: userEmail },
-                    }
-                );
-                console.log("Courses fetched:", result.data);
-                
-                // Extract the course data from the response
-                const coursesData = result.data.map((item: any) => item.course); 
-                setCourses(coursesData); // Set only the course data
-            } catch (error) {
-                console.error("Error fetching courses:", error);
-            }
-        };
-    
-        if (studentRole !== "STUDENT" && user?.cmuitaccount) {
-            fetchCourses(user.cmuitaccount); // Fetch courses for the user
-        }
-    
-    }, [changeOpen, editOpen, addOpen, selectedCourse, user?.cmuitaccount]); // Add user.cmuitaccount as a dependency
-    
+        
+        fetchCourses(); // Call the async function
+      }, [changeOpen,editOpen,addOpen,selectedCourse]);
       
       const handlecourseconfig = (id) => {
         setSelectcourseconfig(id);
@@ -363,95 +317,17 @@ function Page() {
       }
 
     useEffect(() => {
-        console.log("page",courses)
-    },[courses]);
+        console.log("page",pages)
+    },[pages]);
 
     return (
         <>
-        {pages == "courseconfig" ? (
+        {pages == "courseconfig" 
+        ? (
             <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages}/>
         ): pages == "attendance" ? (
              <Attendance course_id={selectcourseconfig} pages={pages} setPages={setPages }/>
-        ) : studentRole === "STUDENT" ? (
-            <Box
-            sx={{
-                minHeight: '100vh',
-                bgcolor: '#8F16AD',
-                flexDirection: 'column',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}
-        >
-            <Box
-                sx={{
-                    width: '80%',
-                    display: 'inline-flex',
-                    alignItems: 'baseline',
-                    mb: 2,
-                }}
-            >
-                <Typography
-                    variant="h4"
-                    sx={{
-                        fontFamily: 'Prompt',
-                        color: '#F2BEFF',
-                        fontStyle: 'italic',
-                    }}
-                >
-                    Hello!
-                </Typography>
-                <Typography
-                    variant="h6"
-                    sx={{
-                        fontFamily: 'Prompt',
-                        color: 'white',
-                        ml: 1,
-                        fontStyle: 'italic',
-                    }}
-                >
-                    {user.firstname_TH} {user.lastname_TH}
-                </Typography>
-            </Box>
-
-            <Card
-                sx={{
-                    minHeight: '80vh',
-                    width: '80%',
-                    padding: 4,
-                    borderRadius: 4,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 2,
-                    position: 'relative',
-                    justifyContent: 'center', // Center vertically
-                    alignItems: 'center', // Center horizontally
-                }}
-            >
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: '100%',
-                        textAlign: 'start',
-                        width: '100%', // Ensure full width
-                    }}
-                >
-                    <Typography 
-                        variant="h5" // Increase text size
-                        sx={{
-                            fontWeight: 'bold', // Make it bold
-                            color: '#FF0000', // Optional: Change color
-                        }}
-                    >
-                        Access Denied, Please Contact Admin
-                    </Typography>
-                </Box>
-            </Card>
-
-        </Box>
-        ) : (
+        ):( 
         <Box
             sx={{
                 minHeight: '100vh',
@@ -508,31 +384,6 @@ function Page() {
                 <Box sx={{ overflowY: 'auto', maxHeight: 'calc(80vh - 130px)' }}>
                 {/* Display courses */}
                 <Grid container spacing={2}>
-               
-                    {courses.length == 0 && studentRole !== "TA" && (
-                            <Box
-                                 sx={{
-                                     display: 'flex',
-                                     justifyContent: 'center',
-                                     alignItems: 'center',
-                                     height: '100%',
-                                     textAlign: 'center',
-                                     width: '100%', // Ensure full width
-                                 }}
-                             >
-                                 <Typography 
-                                     variant="h5" // Increase text size
-                                     color="info" // Change color
-                                     sx={{
-                                         fontWeight: 'bold', // Make it bold
-                                     }}
-                                 >
-                                    Please Add Course
-                                 </Typography>
-                             </Box>
-                        
-                    )}
-
                     {courses.map((course, index) => (
                         
                         <Grid size={{xs:12,md:6}} key={index}>
@@ -571,7 +422,7 @@ function Page() {
                                             Course Name : <span style={{ color: '#BF48DD' }}>{course.course_name}</span>
                                         </Typography>
                                     </Grid>
-                                    { studentRole !== "TA" && (
+                                    { !studentRole && (
                                        <Grid size={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                                             <Button sx={{ height: '100%' ,mr:-2}} onClick={() => handleEditClick(course)}>
                                                 <MoreVertIcon fontSize="large" />
@@ -585,7 +436,7 @@ function Page() {
                     ))}
                 </Grid>
                 </Box>   
-                { studentRole !== "TA" && (
+                { !studentRole && (
                 <Button
                     variant="contained"
                     onClick={handleAddClick}
@@ -608,21 +459,21 @@ function Page() {
 
             {/* Dialog for Adding Course */}
             <Dialog 
-                open={addOpen} 
-                onClose={handleClose}
-                sx={{ 
-                    display: 'flex',
-                    alignItems: 'center', // Centers content vertically
-                    justifyContent: 'center', // Centers content horizontally
-                    '& .MuiDialog-paper': { // Targets the dialog box itself
-                        width: { xs: '250px', sm: '400px', md: '500px' },
-                        // display: 'flex',
-                        // flexDirection: 'column',
-                        // alignItems: 'center', // Centers content inside
-                        // textAlign: 'center'
-                    }
-                }} 
-            >
+    open={addOpen} 
+    onClose={handleClose}
+    sx={{ 
+        display: 'flex',
+        alignItems: 'center', // Centers content vertically
+        justifyContent: 'center', // Centers content horizontally
+        '& .MuiDialog-paper': { // Targets the dialog box itself
+            width: { xs: '250px', sm: '400px', md: '500px' },
+            // display: 'flex',
+            // flexDirection: 'column',
+            // alignItems: 'center', // Centers content inside
+            // textAlign: 'center'
+        }
+    }} 
+>
                 <DialogTitle  
                   
                 >
@@ -763,10 +614,9 @@ function Page() {
                     >
                         Course ID
                     </Typography>
-                    
                     <TextField
                         fullWidth
-                        value={selectedCourse ? selectedCourse.course_id : ''} 
+                        value={selectedCourse.course_id}
                         slotProps={{
                             htmlInput: { readOnly: true }, // Make field read-only
                         }}
@@ -779,7 +629,6 @@ function Page() {
                             },
                         }}
                     />
-                    
                     <Typography
                         sx={{
                             fontFamily: 'Prompt',
@@ -793,7 +642,7 @@ function Page() {
                     </Typography>
                     <TextField
                         fullWidth
-                        value={selectedCourse ? selectedCourse.course_name : ''} 
+                        value={selectedCourse.course_name}
                         slotProps={{
                             htmlInput: { readOnly: true }, // Make field read-only
                         }}
@@ -823,7 +672,7 @@ function Page() {
                             borderRadius: 4,
                             width: '40%', // Adjust button width as needed
                         }}
-                        onClick={()=> setChangeOpen(true)}
+                        onClick={handleChangeClick}
                     >
                         <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'medium', color: 'white', fontSize: {xs:"16px",sm:"20px"},}}>
                             Edit
@@ -858,47 +707,18 @@ function Page() {
                     
                     <TextField
                         fullWidth
-                        value={selectedCourse?.course_id || ""}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            if (/^\d*$/.test(value)) {
-                            setSelectedCourse((prev) => ({
-                                ...prev,
-                                course_id: value,
-                            }));
-
-                            if (value.length === 6) {
-                                setError((prev) => ({ ...prev, courseId: '' }));
-                            } else {
-                                setError((prev) => ({
-                                ...prev,
-                                courseId: 'Course ID must be exactly 6 digits',
-                                }));
-                            }
-                            } else {
-                            setError((prev) => ({
-                                ...prev,
-                                courseId: 'Course ID must be numeric',
-                            }));
-                            }
+                        value={selectedCourse.course_id}
+                        onChange={handleInputChange}
+                        error={error}
+                        helperText={error ? errorMessage : ''}
+                        sx={{
+                            mb: 2,
+                            '& .MuiInputBase-root': {
+                                backgroundColor: '#EDEDED',
+                                borderRadius: 4,
+                                border: '1px solid #D9D9D9',
+                            },
                         }}
-                        error={!!error.courseId}
-                        helperText={error.courseId}
-                    sx={{
-                        mb: 2,
-                        '& .MuiInputBase-root': {
-                            backgroundColor: '#EDEDED',
-                            borderRadius: 4,
-                            border: '1px solid #D9D9D9',
-                        },
-                        '& .MuiInputLabel-root': {
-                            fontFamily: 'Prompt',
-                        },
-                        '& .MuiInputBase-input': {
-                            fontFamily: 'Prompt',
-                        },
-                    }}
-
                     />
 
                     <Typography sx={{ fontFamily: 'Prompt', fontWeight: 'Bold', color: '#8F16AD', mb: 1, fontSize: {xs:"16px",sm:"20px"}, }}>
@@ -906,7 +726,7 @@ function Page() {
                     </Typography>
                     <TextField
                         fullWidth
-                        value={selectedCourse ? selectedCourse.course_name : ''} 
+                        value={selectedCourse.course_name}
                         onChange={(e) =>
                             setSelectedCourse((prev) => ({
                                 ...prev,

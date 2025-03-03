@@ -17,7 +17,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const res = await fetch(`${backendUrl}/whoAmI`, {
         credentials: "include",
       });
-      console.log("res from useauth", res);
+      console.log("res", res);
 
       const data: WhoAmIResponse = await res.json();
       if (data.ok) {
