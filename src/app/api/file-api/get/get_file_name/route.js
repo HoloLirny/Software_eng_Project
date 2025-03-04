@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../../prisma/prisma";
 
-// http://localhost:3000/api/file-api/get/get_path_by_id?course_id=261361&user_email=teacher@example.com
+// http://localhost:3000/api/file-api/get/get_file_name?course_id=261361&user_email=teacher@example.com
 
 export async function GET(req) {
   try {
@@ -29,6 +29,7 @@ export async function GET(req) {
         { status: 403 }
       );
     }
+    
     if (!courseId) {
       return NextResponse.json(
         { error: "Course ID are required" },
@@ -42,14 +43,14 @@ export async function GET(req) {
         course_id: courseId, 
       },
       select:{
-        file_url: true,
+        file_name: true,
       }
     });
 
 
     if (files.length === 0) {
       return NextResponse.json(
-        { message: `No attendance files found for course_id ${courseId}` },
+        { message: `No files found for course_id ${courseId}` },
         { status: 404 }
       );
     }
