@@ -2,15 +2,35 @@ import { NextResponse } from "next/server";
 import prisma from "../../../../../prisma/prisma";
 import fs from "fs";
 import path from "path";
-// DELETE API for deleting a file by file_name and course_id
-// http://localhost:3000/api/file-api/delete?file_name=studentlist_261361.xlsx&course_id=001001
+
+// http://localhost:3000/api/file-api/delete
 export async function DELETE(req) {
   try {
-    const { searchParams } = new URL(req.url);
-    const fileName = searchParams.get("file_name");
-    const courseId = searchParams.get("course_id");
+    const { file_name,course_id, user_email } = await req.json();
 
-    if (!fileName || !courseId) {
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
+      );
+    }
+
+    if (!file_name || !course_id) {
       return NextResponse.json(
         { error: "file_name and course_id are required" },
         { status: 400 }
@@ -19,18 +39,18 @@ export async function DELETE(req) {
 
     // Find the file in the database
     const file = await prisma.file.findFirst({
-      where: { file_name: fileName, course_id: courseId },
+      where: { file_name: file_name, course_id: course_id },
     });
 
     if (!file) {
       return NextResponse.json(
-        { error: `File with name ${fileName} does not exist in ${courseId}` },
+        { error: `File with name ${file_name} does not exist in ${course_id}` },
         { status: 404 }
       );
     }
 
     // Construct the file path
-    const filePath = path.join(process.cwd(), "public/uploads", fileName);
+    const filePath = path.join(process.cwd(), "public/uploads", file_name);
 
     // Delete the physical file if it exists
     if (fs.existsSync(filePath)) {
@@ -47,7 +67,7 @@ export async function DELETE(req) {
     });
 
     return NextResponse.json({
-      message: `File ${fileName} associated with course_id ${courseId} deleted successfully`,
+      message: `File ${file_name} associated with course_id ${course_id} deleted successfully`,
     });
   } catch (error) {
     console.error("Error deleting file:", error);

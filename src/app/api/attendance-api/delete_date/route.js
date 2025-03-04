@@ -4,12 +4,34 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/attendance-api/delete_date
 export async function DELETE(req) {
   try {
-    const { date, course_id } = await req.json();
+    const { date, course_id, user_email } = await req.json();
 
-    if (!course_id || !date) {
+    if (!course_id || !date || !user_email) {
       return NextResponse.json(
-        { error: "Course ID and Date is required" },
+        { error: "Course ID, User email and Date is required" },
         { status: 400 }
+      );
+    }
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
       );
     }
 

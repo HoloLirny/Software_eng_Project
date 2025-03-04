@@ -3,31 +3,27 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/attendance-api/add
 export async function POST(req) {
   try {
-    const { course_id, student_id, date } = await req.json();
+    const { course_id, student_id, date, user_email } = await req.json();
 
     // Validate input
-    if (!course_id || !student_id || !date) {
+    if (!course_id || !student_id || !date || !user_email) {
       return new Response(
         JSON.stringify({
-          message: "course_id, student_id, and date are required",
+          message: "course_id, student_id, user_email and date are required",
         }),
         { status: 400 }
       );
     }
 
     ///////////////////////////////////////////////////////
-    // Mock teacher_id for now (replace with actual session logic later)
-    const teacher_id = 1; // Replace with actual logic when auth is implemented
-
     const teacher = await prisma.user.findUnique({
-      where: { id: teacher_id },
-      select: { user_role: true },
+      where: { email: user_email },
     });
 
     if (!teacher) {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} not found`,
+          message: `User with email ${user_email} not found`,
         }),
         { status: 404 }
       );
@@ -36,7 +32,7 @@ export async function POST(req) {
     if (teacher.user_role !== "TEACHER") {
       return new Response(
         JSON.stringify({
-          message: `User with ID ${teacher_id} is not a TEACHER`,
+          message: `User with email ${user_email} is not a TEACHER`,
         }),
         { status: 403 }
       );
@@ -128,7 +124,7 @@ export async function POST(req) {
         section_lab,
         section_lec,
         student_id,
-        user_id: teacher_id,
+        user_id: teacher.id,
         detail_id: existingDate.id,
       },
       include: {

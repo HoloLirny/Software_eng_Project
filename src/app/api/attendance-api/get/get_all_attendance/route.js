@@ -3,8 +3,40 @@ import prisma from "../../../../../../prisma/prisma";
 
 // http://localhost:3000/api/attendance-api/get/get_all_attendance
 
-export async function GET() {
+export async function GET(req) {
   try {
+    const { searchParams } = new URL(req.url);
+    const user_email = searchParams.get("user_email");
+    
+    if (!user_email) {
+      return NextResponse.json(
+        { message: "user_email are required" },
+        { status: 400 }
+      );
+    }
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
+      );
+    }
+
     const attendance = await prisma.attendance.findMany({
       include: {
         attendance_detail: {
