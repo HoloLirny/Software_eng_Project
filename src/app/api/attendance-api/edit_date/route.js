@@ -3,12 +3,34 @@ import prisma from "../../../../../prisma/prisma";
 
 export async function PUT(req) {
   try {
-    const { date_old, date_new, description_new, course_id } = await req.json();
+    const { date_old, date_new, description_new, course_id, user_email } = await req.json();
 
-    if (!date_old || !course_id) {
+    if (!date_old || !course_id || !user_email) {
       return new Response(
-        JSON.stringify({ message: "date_old and course_id are required" }),
+        JSON.stringify({ message: "date_old, user email and course_id are required" }),
         { status: 400 }
+      );
+    }
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
       );
     }
 

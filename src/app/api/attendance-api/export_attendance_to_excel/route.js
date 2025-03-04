@@ -10,12 +10,34 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get("course_id");
-    const teacher_id = 1;
+    const user_email = searchParams.get("user_email");
 
-    if (!courseId) {
+    if (!courseId || !user_email) {
       return NextResponse.json(
-        { message: "course_id is required" },
+        { message: "course_id and user_email are required" },
         { status: 400 }
+      );
+    }
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
       );
     }
 
@@ -126,7 +148,7 @@ export async function GET(req) {
         where: { id: existingFile.id },
         data: {
           file_url: `/public/uploads/${fileName}`,
-          uploaded_by: teacher_id,
+          uploaded_by: teacher.id,
         },
       });
       console.log("File updated:", updatedFile);
@@ -136,7 +158,7 @@ export async function GET(req) {
           file_name: fileName,
           file_url: `/public/uploads/${fileName}`,
           course_id: courseId,
-          uploaded_by: teacher_id,
+          uploaded_by: teacher.id,
         },
       });
       console.log("File uploaded successfully:", savedFile);
