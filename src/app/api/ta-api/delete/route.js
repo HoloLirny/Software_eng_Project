@@ -4,9 +4,7 @@ import prisma from "../../../../../prisma/prisma";
 // http://localhost:3000/api/ta-api/delete?user_email=teacher@example.com&ta_email=win@gmail.com
 export async function DELETE(req) {
   try {
-    const { searchParams } = new URL(req.url);
-    const user_email = searchParams.get("user_email");
-    const ta_email = searchParams.get("ta_email");
+    const { course_id, ta_email, user_email } = await req.json();
 
     if (!user_email || !ta_email) {
       return NextResponse.json(
@@ -45,27 +43,35 @@ export async function DELETE(req) {
 
     if (!ta) {
       return NextResponse.json(
-        { error: `TA with ID ${ta_email} does not exist` },
+        { error: `TA with email ${ta_email} does not exist` },
         { status: 404 }
       );
     }
 
     if (ta.user_role !== "TA") {
       return NextResponse.json(
-        { error: `User with ID ${ta_email} is not a TA` },
+        { error: `User with email ${ta_email} is not a TA` },
         { status: 400 }
       );
     }
 
+    const taexistincourse = await prisma.user_course.findFirst({
+      where: { course_id: course_id, user_id: ta.id },
+    });
+
+    if (!taexistincourse) {
+      return NextResponse.json(
+        { error: `TA with email ${ta_email} does not exist in this course` },
+        { status: 404 }
+    );}
+
     // Delete the TA
-    const deletedTA = await prisma.user.delete({
-      where: { email: ta_email },
+    const deletedTA = await prisma.user_course.deleteMany({
+      where: { course_id: course_id, user_id: ta.id },
     });
 
     return NextResponse.json(
-      { message: "TA deleted successfully",
-        deletedTA,
-      },
+      { message: "TA deleted successfully", deletedTA },
       { status: 200 });
 
   } catch (error) {
