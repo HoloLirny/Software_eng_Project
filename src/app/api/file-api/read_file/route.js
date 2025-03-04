@@ -5,7 +5,29 @@ import * as xlsx from "xlsx";
 
 export async function POST(req) {
   try {
-    const { file_name } = await req.json();
+    const { file_name, user_email } = await req.json();
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
+      );
+    }
 
     if (!file_name) {
       return new Response(JSON.stringify({ message: "file_name is required" }), { status: 400 });
@@ -43,8 +65,6 @@ export async function POST(req) {
       return new Response(JSON.stringify({ message: "Course ID is missing in the file" }), { status: 400 });
     }
 
-    let teacherId = 1; // ค่าเริ่มต้น หรืออาจต้องแก้ให้ดึงจากฐานข้อมูล
-
     let existingCourse = await prisma.course.findUnique({
       where: { course_id: courseId },
     });
@@ -55,13 +75,13 @@ export async function POST(req) {
           course_id: courseId,
           course_name: `Course ${courseId}`,
           scan_time: 5,
-          teacher_id: teacherId,
+          teacher_id: teacher.id,
         },
       });
 
       await prisma.user_course.create({
         data: {
-          user_id: teacherId,
+          user_id: teacher.id,
           course_id: courseId,
         },
       });

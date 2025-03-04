@@ -1,17 +1,40 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../../prisma/prisma";
 
-// http://localhost:3000/api/attendance-api/get/get_by_id?course_id=001001
+// http://localhost:3000/api/attendance-api/get/get_by_id?course_id=261361&user_email=teacher@example.com
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get("course_id");
+    const user_email = searchParams.get("user_email");
 
-    if (!courseId) {
+    if (!courseId || !user_email) {
       return NextResponse.json(
-        { error: "Missing course_id parameter" },
+        { error: "Missing course_id and user email parameter" },
         { status: 400 }
+      );
+    }
+
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email },
+    });
+
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
+
+    if (teacher.user_role !== "TEACHER") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER`,
+        }),
+        { status: 403 }
       );
     }
 
