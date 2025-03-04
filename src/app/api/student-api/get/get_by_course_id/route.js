@@ -8,27 +8,27 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const course_id = searchParams.get("course_id");
     const user_email = searchParams.get("user_email");
-    // const teacher = await prisma.user.findUnique({
-    //   where: { email: user_email }
-    // });
+    const teacher = await prisma.user.findUnique({
+      where: { email: user_email }
+    });
 
-    // if (!teacher) {
-    //   return new Response(
-    //     JSON.stringify({
-    //       message: `User with email ${user_email} not found`,
-    //     }),
-    //     { status: 404 }
-    //   );
-    // }
+    if (!teacher) {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} not found`,
+        }),
+        { status: 404 }
+      );
+    }
 
-    // if (teacher.user_role !== "TEACHER") {
-    //   return new Response(
-    //     JSON.stringify({
-    //       message: `User with email ${user_email} is not a TEACHER`,
-    //     }),
-    //     { status: 403 }
-    //   );
-    // }
+    if (teacher.user_role !== "TEACHER" & teacher.user_role !== "TA") {
+      return new Response(
+        JSON.stringify({
+          message: `User with email ${user_email} is not a TEACHER or TA`,
+        }),
+        { status: 403 }
+      );
+    }
 
     if (!course_id) {
       return NextResponse.json(
