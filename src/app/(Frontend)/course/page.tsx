@@ -42,7 +42,7 @@ function Page() {
     const res = useAuthStore((state) => state.user);
     const [loading, setLoading] = useState(true);
 
-    const [studentRole, setStudentRole] = useState<string | null>(null);
+    const [studentRole, setStudentRole] = useState<string | null>("STUDENT");
     // const user = res.cmuBasicInfo[0];
     const Swal = require('sweetalert2')
     const [addOpen, setAddOpen] = useState(false); // State for dialog visibility
@@ -295,6 +295,7 @@ function Page() {
             params: { email: user.cmuitaccount }, // Pass email as query param
             }
         );
+        console.log("responce student ",response.data)
         setStudentRole(response.data);
         } catch (error) {
         console.error("Error fetching role:", error);
@@ -303,8 +304,9 @@ function Page() {
     };
 
     fetchRole();
+      
     }, [user]);
-
+    console.log(studentRole)
     useEffect(() => {
         const fetchCourses = async (userEmail: string) => {
             try {
@@ -322,6 +324,7 @@ function Page() {
         };
     
         if (studentRole !== "STUDENT" && user?.cmuitaccount ) {
+            console.log("thsi is o skokapodkops")
             fetchCourses(user.cmuitaccount); 
         }
     
