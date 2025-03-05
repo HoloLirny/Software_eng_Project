@@ -23,19 +23,23 @@ export async function GET(request) {
     });
 
     if (!role) {   
-        role = await prisma.student.findUnique({
+        let student = await prisma.student.findUnique({
             where: { student_email: email }
         });
-    }
-
-    if(!role) {
-        return NextResponse.json(
+        if(student){
+           return NextResponse.json("STUDENT");
+        }else{
+          return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
         );
-    }else{
-        return NextResponse.json("Student role");
+        }
+       
     }
+
+   
+        return NextResponse.json(role.user_role);
+    
 
   } catch (error) {
     console.error("Error fetching course:", error);
