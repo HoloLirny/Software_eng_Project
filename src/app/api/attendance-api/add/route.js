@@ -29,14 +29,6 @@ export async function POST(req) {
       );
     }
 
-    if (teacher.user_role !== "TEACHER") {
-      return new Response(
-        JSON.stringify({
-          message: `User with email ${user_email} is not a TEACHER`,
-        }),
-        { status: 403 }
-      );
-    }
     ///////////////////////////////////////////////////////
 
     // Check if the course exists

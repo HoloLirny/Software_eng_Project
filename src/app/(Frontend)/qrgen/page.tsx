@@ -9,13 +9,13 @@ import Image from 'next/image';
 import iconimg from '../../../../public/icon.png';
 import axios from 'axios';
 
-function Page({time, mode, expireTime, courseId,setPage}) {
+function Page({time, mode, expireTime, courseId,setPage,user_email,date}) {
     // const time = 200;
     // const mode = 'time';
     // const expireTime = 1;
     // const courseId = '261335';
 
-    const [students, setStudents] = useState(null);
+    const [students, setStudents] = useState([]);
     
     const [qrCode, setQrCode] = useState<string>("");
     const [timeLeft, setTimeLeft] = useState<number>(time);
@@ -25,7 +25,7 @@ function Page({time, mode, expireTime, courseId,setPage}) {
         if (timeLeft <= 0) return; // Don't generate QR if time expired
         try {
             const res = await fetch(
-                `/api/generate-qr?mode=${mode}&courseId=${courseId}&expireTime=${expireTime}`
+                `/api/generate-qr?mode=${mode}&courseId=${courseId}&expireTime=${expireTime}&email=${user_email}`
             );
             if (!res.ok) throw new Error("Failed to fetch QR code");
 
@@ -55,22 +55,35 @@ function Page({time, mode, expireTime, courseId,setPage}) {
     }, []);
 
     useEffect(() => {
-        const fetchstudent = async (userEmail: string) => {
+        const fetchStudent = async () => {
+            if (!user_email) return;
+
             try {
                 const result = await axios.get(
                     `${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/get/get_by_id`,
                     {
-                        params: { user_email: userEmail },
+                        params: {
+                            course_id: "261361",  // Example course_id (should be dynamic)
+                            user_email: user_email,
+                            date: date,  // Example date (should be dynamic)
+                        },
                     }
                 );
-                const studentlist = result.data.map((item: any) => item.course); 
-                setStudents(studentlist); // Set only the course data
+
+                const studentList = result.data.map((item: any) => ({
+                    name: item.student.student_name,
+                    date: item.attendance_detail.date,
+                    description: item.attendance_detail.description,
+                }));
+                console.log(date)
+                setStudents(studentList);
             } catch (error) {
-                console.error("Error fetching courses:", error);
+                console.error("Error fetching attendance:", error);
             }
         };
-        fetchstudent(user.cmuitaccount);
-    }, [students]);
+
+        fetchStudent();
+    }, [user_email]);
 
     useEffect(() => {
         // Generate QR Code initially

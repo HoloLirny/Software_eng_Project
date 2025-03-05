@@ -24,7 +24,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import QRgen from '../qrgen/page'
 import Swal from "sweetalert2";
 
-function Page({ course_id , pages, setPages, user }) {
+function Page({ course_id , pages, setPages, user, role }) {
   // TODO: change userEmail when login works
   const [userEmail, setUserEmail] = useState(user.cmuitaccount); 
   const [columns, setColumns] = useState([]);
@@ -152,7 +152,7 @@ function Page({ course_id , pages, setPages, user }) {
       return;
     }
     try {
-      const response = await fetch('/api/attendance-api/edit_date', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/edit_date`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ function Page({ course_id , pages, setPages, user }) {
           return;
         }
         
-        fetchColumns();
+        fetchDates();
         fetchStudenInClass();
         handleCloseGenQRModal();
         
@@ -209,6 +209,7 @@ function Page({ course_id , pages, setPages, user }) {
     // Check if id is a string and contains exactly 9 digits
     return /^[1-9]\d{8}$/.test(id);
   };
+
   const handleSubmit = async () => {
     // Validate Student ID
     if (!isValidStudentId(student_id)) {
@@ -255,7 +256,7 @@ function Page({ course_id , pages, setPages, user }) {
     }
 
     try {
-      const response = await fetch("/api/student-api/add", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/student-api/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -311,10 +312,9 @@ function Page({ course_id , pages, setPages, user }) {
     }
   };
 
-
   const fetchStudenInClass = async () => {
     try {
-      const response = await fetch(`/api/student-api/get/get_by_course_id?course_id=${course_id}&user_email=${userEmail}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/student-api/get/get_by_course_id?course_id=${course_id}&user_email=${userEmail}`);
       if (!response.ok) {
         const errorData = await response.json();
         alert(errorData.error || "Failed to fetch student data");
@@ -337,7 +337,7 @@ function Page({ course_id , pages, setPages, user }) {
   // Fetch Attendance Data
   const fetchAttendanceData = async () => {
     try {
-      const response = await fetch(`/api/attendance-api/get/get_all_attendance?user_email=${userEmail}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/get/get_all_attendance?user_email=${userEmail}`);
       if (!response.ok) {
         const errorData = await response.json();
         alert(errorData.error || "Failed to fetch attendance data");
@@ -359,9 +359,9 @@ function Page({ course_id , pages, setPages, user }) {
   };
 
   // Fetch Columns (Dates)
-  const fetchColumns = async () => {
+  const fetchDates = async () => {
     try {
-      const response = await fetch(`/api/attendance-api/get/get_date?course_id=${course_id}&user_email=${userEmail}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/get/get_date?course_id=${course_id}&user_email=${userEmail}`);
       if (!response.ok) {
         const errorData = await response.json();
         alert(errorData.error || "Failed to fetch columns");
@@ -387,7 +387,7 @@ function Page({ course_id , pages, setPages, user }) {
 
     try {
       handleCloseaddDateModal();
-      const response = await fetch("/api/attendance-api/add_date", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/add_date`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date: selectedDate,
@@ -406,7 +406,7 @@ function Page({ course_id , pages, setPages, user }) {
         });
         return;
       }
-      fetchColumns();
+      fetchDates();
 
       Swal.fire({ 
         title: 'Success!', 
@@ -435,7 +435,7 @@ function Page({ course_id , pages, setPages, user }) {
   const exportFile = async () => {
     try {
       const reponse = await fetch(
-        `/api/attendance-api/export_attendance_to_excel?course_id=${course_id}&user_email=${userEmail}`
+        `${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/export_attendance_to_excel?course_id=${course_id}&user_email=${userEmail}`
       );
 
       if(!reponse.ok){
@@ -499,14 +499,13 @@ function Page({ course_id , pages, setPages, user }) {
       console.error("Download failed:", error);
     }
   }
-
   useEffect(() => {
     fetchAttendanceData();
   }, [students, columns]);
 
   useEffect(() => {
     fetchStudenInClass();
-    fetchColumns();
+    fetchDates();
     fetchAttendanceData();
   }, []);
 
@@ -560,7 +559,7 @@ function Page({ course_id , pages, setPages, user }) {
       Attendance
     </Box>
 
-    <Button
+    {role === "TEACHER" ? <Button
       variant="contained"
       color="secondary"
       sx={{
@@ -573,11 +572,12 @@ function Page({ course_id , pages, setPages, user }) {
       onClick={exportFile}
     >
       Export
-    </Button>
+    </Button>:<></>}
+
       </Box>
       
       {/* These buttons will now be placed below the "Back" button */}
-      <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: 3 , justifyContent: "space-between" , alignItems: "center", width: "90%", mt : 10}}>
+      {role === "TEACHER"? <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: 3 , justifyContent: "space-between" , alignItems: "center", width: "90%", mt : 10}}>
         <Button
           variant="contained"
           
@@ -602,7 +602,7 @@ function Page({ course_id , pages, setPages, user }) {
           Add DATE
         </Button>
         
-      </Box>
+      </Box>:<></>}
 
 
 
@@ -779,9 +779,9 @@ function Page({ course_id , pages, setPages, user }) {
             </Typography>
 
             {/* Settings Icon - Top Right */}
-            <IconButton size="small" onClick={handleEditDateModal}>
+            {role === "TEACHER"? <IconButton size="small" onClick={handleEditDateModal}>
               <SettingsIcon />
-            </IconButton>
+            </IconButton>: <></>}
 
           </Box>
           <Typography variant="h6" style={{ color: "#8F16AD", fontWeight: "bold", marginTop: 2}}> {generateQRDate} </Typography>
@@ -1037,7 +1037,7 @@ function Page({ course_id , pages, setPages, user }) {
       </Modal>
 
       </Box>):(
-        <QRgen time={time} mode={mode} expireTime={expireTime} courseId={course_id} setPage={setPage}/>
+        <QRgen time={time} mode={mode} expireTime={expireTime} courseId={course_id} setPage={setPage} user_email={userEmail} date = {generateQRDate}/>
       )
       }
     </>

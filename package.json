@@ -21,6 +21,7 @@
     "bcryptjs": "^3.0.2",
     "cookies-next": "^5.0.2",
     "formidable": "^3.5.2",
+    "html5-qrcode": "^2.3.8",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.476.0",
     "next": "^15.2.0",

@@ -3,6 +3,7 @@ interface Token {
   expiresAt: number;
   used: boolean; // Flag for single-scan mode
   mode: "time" | "single-scan"; // QR mode
+  user_email: string,
   courseId: string;
 }
 
@@ -13,6 +14,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get("mode") || "time"; // Default to time-based mode
   const courseId = searchParams.get("courseId") || "";
+  const user_email = searchParams.get("email") || "";
 
   const token = uuidv4();
   const expireTime = Number(searchParams.get("expireTime")) || 10; // Default to 10 seconds if null
@@ -23,6 +25,7 @@ export async function GET(req: Request) {
     used: false,
     mode: mode as "time" | "single-scan", // "time" or "single-scan"
     courseId,
+    user_email,
   };
 
   const baseUrl = `http://${process.env.NEXT_PUBLIC_BACKEND}:3000/attendance`;
@@ -58,6 +61,7 @@ export async function POST(req: Request) {
             valid: true,
             message: "Valid Token",
             courseId: record.courseId, // ✅ Include courseId in the response
+            user_email: record.user_email,
             mode: record.mode,
           }),
           {
@@ -94,6 +98,7 @@ export async function POST(req: Request) {
             valid: true,
             message: "Token Valid",
             courseId: record.courseId, // ✅ Include courseId in the response
+            user_email: record.user_email,
             mode: record.mode,
           }),
           {
