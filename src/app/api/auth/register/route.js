@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function POST(request) {
   try {
-    const { email, password, user_role } = await request.json();
+    const { email, user_role } = await request.json();
 
     // Check if the email already exists in the database
     const existingUser = await prisma.user.findUnique({
@@ -24,16 +24,12 @@ export async function POST(request) {
       );
     }
 
-    // Hash the password before saving it to the database
-    const hashedPassword = bcrypt.hashSync(password, 10);
-
     // Start a transaction
     const result = await prisma.$transaction(async (prisma) => {
       // Create the user
       const newUser = await prisma.user.create({
         data: {
           email,
-          password: hashedPassword,
           user_role,
         },
       });
