@@ -1,6 +1,4 @@
-// TODO: config qr code modal
-// TODO: download button
-// TODO: add student button
+
 "use client";
 import React, { useState, useEffect } from "react";
 import {
@@ -19,15 +17,16 @@ import {
   Typography,
   Grid,
 } from "@mui/material";
-import { Plus } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import SettingsIcon from '@mui/icons-material/Settings';
 import CloseIcon from '@mui/icons-material/Close';
 import QRgen from '../qrgen/page'
-import { POST } from "@/app/api/signIn/route";
+import Swal from "sweetalert2";
 
-function Page({ course_id = "261361", pages, setPages }) {
+function Page({ course_id = "261361", pages, setPages, user }) {
+  // TODO: change userEmail when login works
+  const [userEmail, setUserEmail] = useState(user.cmuBasicInfo[0].cmuitaccount); 
   const [columns, setColumns] = useState([]);
   const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
   const [attendanceData, setAttendanceData] = useState([]); // Store attendance API response
@@ -35,13 +34,13 @@ function Page({ course_id = "261361", pages, setPages }) {
   const [detail, setDetail] = useState("");
   const [generateQRDate, setGenerateQRDate] = useState("");
   const [generateQRDetail, setGenerateQRDetail] = useState("");
-  const [formData, setFormData] = useState({
-    student_id: '',
-    student_name: '',
-    student_email: '',
-    section_lec: 0,
-    section_lab: 0,
-  });
+
+  const [student_id, setStudent_id] = useState("");
+  const [student_name, setStudent_name] = useState("");
+  const [student_email, setStudent_email] = useState("");
+  const [section_lec, setSection_lec] = useState("");
+  const [section_lab, setSection_lab] = useState("");
+
 
   const [addDateModalOpen, setaddDateModalOpen] = useState(false);
   const [genQRModalOpen, setGenQRModalOpen] = useState(false);
@@ -127,45 +126,79 @@ function Page({ course_id = "261361", pages, setPages }) {
 
   const handleDateChange = (date) => {
     if (date) {
-      setSelectedDate(date.toISOString().split("T")[0]); // Converts to "YYYY-MM-DD"
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      setSelectedDate(localDate.toISOString().split("T")[0]); // Converts to "YYYY-MM-DD"
     }
   };
 
+  function isDateInColumns(selectedDate, columns) {
+    return columns.some(column => column.label === selectedDate);
+  }
+
   const editDate = async () => {
     if (selectedDate == "") return;
+    if (isDateInColumns(selectedDate, columns)) {
+      handleCloseEditDateModal();
+      handleCloseGenQRModal();
+      Swal.fire({ 
+        title: 'Failed!', 
+        text: 'Date already exists.', 
+        icon: 'error', 
+        confirmButtonText: 'OK', 
+        customClass:{
+          popup: "swal-popup",
+        }
+      });
+      return;
+    }
     try {
       const response = await fetch('/api/attendance-api/edit_date', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ date_old: oldDate, date_new: selectedDate, description_new: detail, course_id }),
-      })
+        body: JSON.stringify({ date_old: oldDate,
+          date_new: selectedDate,
+          description_new: detail,
+          course_id: course_id,
+          user_email: userEmail }),
+        })
+        
+        handleCloseEditDateModal();
+        if (!response.ok){
+          const errorData = await response.json();
+          Swal.fire({ 
+            title: 'Failed!', 
+            text: errorData.message, 
+            icon: 'error', 
+            confirmButtonText: 'OK', 
+            customClass: {
+              popup: "swal-popup",
+            }
+          });
+          return;
+        }
+        
+        fetchColumns();
+        fetchStudenInClass();
+        handleCloseGenQRModal();
+        
+      Swal.fire({ 
+        title: 'Success!', 
+        text: 'Date successfully edited.', 
+        icon: 'success', 
+        confirmButtonText: 'OK' 
+      });
 
-      if (!response.ok){
-        const errorData = await response.json();
-        alert(errorData.message);
-        return;
-      }
-      alert("Date Edited Successfully");
-      fetchColumns();
-      fetchAttendanceData();
-      fetchStudenInClass();
-      handleCloseEditDateModal();
-      handleCloseGenQRModal();
     } catch (error) {
-      console.error("Error adding column:", error);
-      alert("An error occurred while editing the date.");
+      Swal.fire({ 
+        title: 'Failed!', 
+        text: 'Failed to edit date.', 
+        icon: 'error', 
+        confirmButtonText: 'OK' 
+      });
     }
   }
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
 
   function validateEmail (email: string) {
     const cmuRegex = /^[a-zA-Z0-9._%+-]+@cmu.ac.th$/;
@@ -176,62 +209,112 @@ function Page({ course_id = "261361", pages, setPages }) {
     // Check if id is a string and contains exactly 9 digits
     return /^[1-9]\d{8}$/.test(id);
   };
-
   const handleSubmit = async () => {
-    // Handle form submission
-    if (!isValidStudentId(formData.student_id)) {
+    // Validate Student ID
+    if (!isValidStudentId(student_id)) {
+      handleCloseAddStudentModal();
+      Swal.fire({
+        title: "Invalid Input",
+        text: "Student ID must be at least 9 characters.",
+        icon: "warning",
+        confirmButtonText: "OK",
+        customClass:{
+          popup: "swal-popup",
+        }
+      });
       return;
     }
 
-    if (!validateEmail(formData.student_email)) {
-      console.log("invalid email format")
+    // Validate Email
+    if (!validateEmail(student_email)) {
+      handleCloseAddStudentModal();
+      Swal.fire({
+        title: "Invalid Email",
+        text: "Please enter a valid email address.",
+        icon: "warning",
+        confirmButtonText: "OK",
+        customClass:{
+          popup: "swal-popup",
+        }
+      });
       return;
     }
 
-    if(isNaN(formData.section_lab)) {
-      console.log("section_lab must be a number")
+    // Validate Sections (should not be empty)
+    if (!section_lec || !section_lab) {
+      Swal.fire({
+        title: "Missing Sections",
+        text: "Both Lecture and Lab sections are required.",
+        icon: "warning",
+        confirmButtonText: "OK",
+        customClass:{
+          popup: "swal-popup",
+        }
+      });
       return;
     }
 
-    if(isNaN(formData.section_lec)) {
-      console.log("section_lec must be a number")
-      return;
-    }
-
-    console.log(formData)
     try {
-      const response = await fetch('/api/student-api/add', {
+      const response = await fetch("/api/student-api/add", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          student_id: formData.student_id,
-          student_name: formData.student_name,
-          student_email: formData.student_email,
-          section_lec: formData.section_lec,
-          section_lab: formData.section_lab,
-          course_id: course_id,
-        })
-      
-      })
+          student_id,
+          student_name,
+          student_email,
+          course_id,
+          section_lec,
+          section_lab,
+          user_email: userEmail,
+        }),
+      });
 
-      if(!response.ok) {
-        console.error("error")
+      handleCloseAddStudentModal();
+      if (!response.ok) {
+        Swal.fire({
+          title: "Failed!",
+          text: "Failed to add student.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
         return;
       }
-      
+
+      // Refresh students list
       fetchStudenInClass();
-      fetchAttendanceData();
-      alert("Student added successfully");
-      setAddStudentModalOpen(false); // Close the modal after submission
+
+      // Success message
+      Swal.fire({
+        title: "Success!",
+        text: "Student successfully added.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+
+      // Reset form fields
+      setStudent_id('');
+      setStudent_name('');
+      setStudent_email('');
+      setSection_lec('');
+      setSection_lab('');
+
+      // Close modal
+      handleCloseAddStudentModal();
     } catch (error) {
       console.error("Error adding student:", error);
-      alert("An error occurred while adding the student")
+      Swal.fire({
+        title: "Error",
+        text: "An error occurred while adding the student.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 
+
   const fetchStudenInClass = async () => {
     try {
-      const response = await fetch(`/api/student-api/get/get_by_course_id?course_id=${course_id}`);
+      const response = await fetch(`/api/student-api/get/get_by_course_id?course_id=${course_id}&user_email=${userEmail}`);
       if (!response.ok) {
         const errorData = await response.json();
         alert(errorData.error || "Failed to fetch student data");
@@ -243,7 +326,7 @@ function Page({ course_id = "261361", pages, setPages }) {
         id: item.student_id, // Convert student_id to number
         name: item.student.student_name
       }));
-
+      
       setStudents(students);
     } catch (error) {
       console.error("Error fetching student data:", error);
@@ -254,7 +337,7 @@ function Page({ course_id = "261361", pages, setPages }) {
   // Fetch Attendance Data
   const fetchAttendanceData = async () => {
     try {
-      const response = await fetch(`/api/attendance-api/get/get_all_attendance`);
+      const response = await fetch(`/api/attendance-api/get/get_all_attendance?user_email=${userEmail}`);
       if (!response.ok) {
         const errorData = await response.json();
         alert(errorData.error || "Failed to fetch attendance data");
@@ -266,15 +349,19 @@ function Page({ course_id = "261361", pages, setPages }) {
 
       setAttendanceData(filteredData);
     } catch (error) {
-      console.error("Error fetching attendance data:", error);
-      alert("An error occurred while fetching attendance data.");
+      Swal.fire({ 
+        title: 'Failed!', 
+        text: 'Failed to fetch attendance data.', 
+        icon: 'error', 
+        confirmButtonText: 'OK' 
+      });
     }
   };
 
   // Fetch Columns (Dates)
   const fetchColumns = async () => {
     try {
-      const response = await fetch(`/api/attendance-api/get/get_date?course_id=${course_id}`);
+      const response = await fetch(`/api/attendance-api/get/get_date?course_id=${course_id}&user_email=${userEmail}`);
       if (!response.ok) {
         const errorData = await response.json();
         alert(errorData.error || "Failed to fetch columns");
@@ -299,24 +386,41 @@ function Page({ course_id = "261361", pages, setPages }) {
     if (selectedDate == "") return;
 
     try {
+      handleCloseaddDateModal();
       const response = await fetch("/api/attendance-api/add_date", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: selectedDate, description: detail, course_id }),
+        body: JSON.stringify({ date: selectedDate,
+          description: detail,
+          course_id: course_id,
+          user_email: userEmail }),
       });
 
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message);
+        Swal.fire({ 
+          title: 'Failed!', 
+          text: data.message, 
+          icon: 'error', 
+          confirmButtonText: 'OK' 
+        });
         return;
       }
-
-      alert("Date Added Successfully");
       fetchColumns();
-      handleCloseaddDateModal();
+
+      Swal.fire({ 
+        title: 'Success!', 
+        text: 'Date successfully added.', 
+        icon: 'success', 
+        confirmButtonText: 'OK' 
+      });
     } catch (error) {
-      console.error("Error adding column:", error);
-      alert("An error occurred while adding the column.");
+      Swal.fire({ 
+        title: 'Failed!', 
+        text: 'Failed to add date.', 
+        icon: 'error', 
+        confirmButtonText: 'OK' 
+      });
     }
   };
 
@@ -331,19 +435,33 @@ function Page({ course_id = "261361", pages, setPages }) {
   const exportFile = async () => {
     try {
       const reponse = await fetch(
-        `/api/attendance-api/export_attendance_to_excel?course_id=${course_id}`
+        `/api/attendance-api/export_attendance_to_excel?course_id=${course_id}&user_email=${userEmail}`
       );
+
       if(!reponse.ok){
         const errorData = await reponse.json();
-        alert(errorData.message);
+        Swal.fire({ 
+          title: 'Failed!', 
+          text: errorData.message || 'Failed to export file.', 
+          icon: 'error', 
+          confirmButtonText: 'OK' 
+        });
         return;
       }
+
       const data = await reponse.json();
       const fileUrl = data.fileUrl;
       downloadFile(fileUrl);
+
     } catch (error) {
       console.error("Error exporting file:", error);
-      alert("An error occurred while exporting the file.");
+      Swal.fire({
+        title: "Failed!",
+        text: "Failed to export file.",
+        icon: "error",
+        confirmButtonText: "OK",
+      
+      })
     }
   }
 
@@ -384,8 +502,12 @@ function Page({ course_id = "261361", pages, setPages }) {
 
   useEffect(() => {
     fetchAttendanceData();
+  }, [students, columns]);
+
+  useEffect(() => {
     fetchStudenInClass();
     fetchColumns();
+    fetchAttendanceData();
   }, []);
 
   return (
@@ -468,7 +590,7 @@ function Page({ course_id = "261361", pages, setPages }) {
           Add student
         </Button>
 
-        {    <Button
+        <Button
           variant="contained"
           sx={{ marginBottom: 2,
             backgroundColor : 'white',
@@ -479,27 +601,7 @@ function Page({ course_id = "261361", pages, setPages }) {
         >
           Add DATE
         </Button>
-        /* <IconButton 
-          color="primary" 
-          onClick={handleOpenaddDateModal} 
-          sx={{ 
-            right : 'auto',
-            // fontSize: 24, 
-            color: "#d46eec", // Bright yellow to attract attention
-            backgroundColor: "#ffffff",
-            ml : 2 ,
-            mb : 2 ,
-            transition: "transform 0.2s",
-            "&:hover": { 
-              transform: "scale(1.2)", 
-              backgroundColor: "#e8b2f5",
-              color: "#ffffff" // Slightly brighter on hover
-            
-            } 
-          }}
-        >
-          <Plus size={35} />
-        </IconButton> */}
+        
       </Box>
 
 
@@ -546,7 +648,7 @@ function Page({ course_id = "261361", pages, setPages }) {
                   onClick = {() => index >= 2 && handleOpenGenQRModal(col.label, col.description)}
                 >
                   {col.label}
-                  { col.description && <p>{col.description}</p>}
+                  {col.description && <p>{col.description}</p>}
                 </TableCell>
               ))}
             </TableRow>
@@ -821,101 +923,116 @@ function Page({ course_id = "261361", pages, setPages }) {
           <h2 style={{ color: '#8F16AD', fontWeight: 'bold', marginBottom: 4 }}>Add Student</h2>
 
           <form>
-            {/* Student ID Field */}
-            <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
-              <Grid item xs={4}>
-                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student ID</h3>
-              </Grid>
-              <Grid item xs={8}>
+          {/* Student ID Field */}
+          <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
+            <Grid item xs={4}>
+              <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student ID</h3>
+            </Grid>
+            <Grid item xs={8}>
               <TextField
                 fullWidth
                 variant="outlined"
                 name="student_id"
-                value={formData.student_id}
-                onChange={handleChange}
-                type="text" // Change to text to preserve leading zeros
+                value={student_id}
+                type="text"
+                inputProps={{ maxLength: 9, inputMode: "numeric", pattern: "[0-9]*" }}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                  setStudent_id(numericValue);
+                }}
                 required
               />
-              </Grid>
             </Grid>
-            { isValidStudentId(formData.student_id) ? <Box></Box> : 
-                                                                <Typography sx={{ color: 'red', fontSize: '0.8rem', mb: 1 , width : '100%', ml: 6}}>
-                                                                    Student ID must be at least 9 characters. </Typography>}
+          </Grid>
 
-            {/* Student Name Field */}
-            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-              <Grid item xs={4}>
-                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student Name</h3>
-              </Grid>
-              <Grid item xs={8}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  name="student_name"
-                  value={formData.student_name}
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
+
+          {/* Student Name Field */}
+          <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Grid item xs={4}>
+              <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student Name</h3>
             </Grid>
-
-            {/* Student Email Field */}
-            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-              <Grid item xs={4}>
-                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student Email</h3>
-              </Grid>
-              <Grid item xs={8}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  name="student_email"
-                  value={formData.student_email}
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
+            <Grid item xs={8}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                name="student_name"
+                value={student_name}
+                onChange={(e) => setStudent_name(e.target.value)}
+                required
+              />
             </Grid>
+          </Grid>
 
-            {/* Section (Lecture) Field */}
-            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-              <Grid item xs={4}>
-                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Section (Lecture)</h3>
-              </Grid>
-              <Grid item xs={8}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  name="section_lec"
-                  value={formData.section_lec}
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
+          {/* Student Email Field */}
+          <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Grid item xs={4}>
+              <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Student Email</h3>
             </Grid>
-
-            {/* Section (Lab) Field */}
-            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-              <Grid item xs={4}>
-                <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Section (Lab)</h3>
-              </Grid>
-              <Grid item xs={8}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  name="section_lab"
-                  value={formData.section_lab}
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
+            <Grid item xs={8}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                name="student_email"
+                value={student_email}
+                onChange={(e) => setStudent_email(e.target.value)}
+                required
+              />
             </Grid>
+          </Grid>
 
-            {/* Submit Button */}
-            <Button variant="contained" color="secondary" fullWidth onClick={handleSubmit}
-            sx={{ fontWeight: 'bold'  }}>
-              Comfirm
-            </Button>
-          </form>
+          {/* Section (Lecture) Field */}
+          <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Grid item xs={4}>
+              <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Section (Lecture)</h3>
+            </Grid>
+            <Grid item xs={8}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                name="section_lec"
+                value={section_lec}
+                inputProps={{ maxLength: 3, inputMode: "numeric", pattern: "[0-9]*" }}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                  setSection_lec(numericValue);
+                }}
+                required
+              />
+            </Grid>
+          </Grid>
+
+          {/* Section (Lab) Field */}
+          <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Grid item xs={4}>
+              <h3 style={{ color: '#8F16AD', fontWeight: 'bold' }}>Section (Lab)</h3>
+            </Grid>
+            <Grid item xs={8}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                name="section_lab"
+                value={section_lab}
+                inputProps={{ maxLength: 9, inputMode: "numeric", pattern: "[0-9]*" }}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                  setSection_lab(numericValue);
+                }}
+                required
+              />
+            </Grid>
+          </Grid>
+
+          {/* Submit Button */}
+          <Button
+            variant="contained"
+            color="secondary"
+            fullWidth
+            onClick={handleSubmit}
+            sx={{ fontWeight: 'bold' }}
+          >
+            Confirm
+          </Button>
+        </form>
         </Box>
       </Modal>
 
