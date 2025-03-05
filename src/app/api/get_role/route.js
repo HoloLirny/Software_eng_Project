@@ -21,22 +21,23 @@ export async function GET(request) {
             user_role: true
         }
     });
-
+    
     if (!role) {   
         let student = await prisma.student.findUnique({
             where: { student_email: email }
         });
         if(student){
-           return NextResponse.json("STUDENT");
+          return NextResponse.json("STUDENT");
         }else{
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
-        );
+          );
         }
        
     }
 
+    console.log("role", role.user_role)
    
         return NextResponse.json(role.user_role);
     

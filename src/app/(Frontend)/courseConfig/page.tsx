@@ -22,12 +22,11 @@ import Grid from '@mui/material/Grid2';
 
 
 
-function Page({ course_id , pages, setPages, user }) {
+function Page({ course_id , pages, setPages, user, role }) {
     const [openAddTA, setOpenAddTA] = useState(false);
     const [taList, setTaList] = useState([]);
     const [files, setFiles] = useState<string[]>([]);
     const [email, setEmail] = useState('');
-    const [role, setRole] = useState('TEACHER'); {/*FIXME: change this when login is work*/}
     const [userEmail, setUserEmail] = useState(user.cmuitaccount);
 
 

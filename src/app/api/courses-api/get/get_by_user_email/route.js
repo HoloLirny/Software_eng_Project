@@ -28,10 +28,10 @@ export async function GET(request) {
       );
     }
 
-    if (teacher.user_role !== "TEACHER") {
+    if (teacher.user_role !== "TEACHER" & teacher.user_role !== "TA") {
       return new Response(
         JSON.stringify({
-          message: `User with email ${user_email} is not a TEACHER`,
+          message: `User with email ${user_email} is not a TEACHER or TA`,
         }),
         { status: 403 }
       );

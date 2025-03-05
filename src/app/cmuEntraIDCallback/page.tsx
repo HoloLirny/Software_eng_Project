@@ -19,7 +19,7 @@ export default function cmuEntraIDCallback() {
       const userExists = await fetchUser(); // Fetch user from backend
 
       if (userExists) {
-        router.push("../course"); // If user exists, navigate to course page
+        router.push("../"); // If user exists, navigate to course page
         return;
       }
 
@@ -29,7 +29,8 @@ export default function cmuEntraIDCallback() {
         .post<SignInResponse>("../api/signIn", { authorizationCode: code })
         .then((resp) => {
           if (resp.data.ok) {
-            router.push("../course");
+            router.push("../");
+            
           }
         })
         .catch((error: AxiosError<SignInResponse>) => {
