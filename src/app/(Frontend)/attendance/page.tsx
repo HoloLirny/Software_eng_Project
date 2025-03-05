@@ -844,7 +844,7 @@ function Page({ course_id , pages, setPages, user }) {
           />
 
           {/* Submit Button */}
-          <Button variant="contained" color="secondary" fullWidth onClick = {() => setPage("qrGen")}>
+          <Button variant="contained" color="secondary" fullWidth onClick = {() => { handleCloseQrConfigModal(); setPage("qrGen");}}>
             Generate QR code
           </Button>
         </form>
@@ -1037,7 +1037,7 @@ function Page({ course_id , pages, setPages, user }) {
       </Modal>
 
       </Box>):(
-        <QRgen time={time} mode={mode} expireTime={expireTime} courseId={course_id}/>
+        <QRgen time={time} mode={mode} expireTime={expireTime} courseId={course_id} setPage={setPage}/>
       )
       }
     </>
