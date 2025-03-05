@@ -264,7 +264,7 @@ function Page() {
     };
 
     const user = res?.cmuBasicInfo?.[0] || null; 
-
+    console.log("this is ",user)
     useEffect(() => {
         fetchUser().then(() => setLoading(false));
     }, []);
@@ -347,9 +347,9 @@ function Page() {
         <>
         {/* {user && ( */}
             { user && pages == "courseconfig" ? (
-                <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages}/>
+                <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages} user={user}/>
             ):  user && pages == "attendance" ? (
-                <Attendance course_id={selectcourseconfig} pages={pages} setPages={setPages }/>
+                <Attendance course_id={selectcourseconfig} pages={pages} setPages={setPages } user={user}/>
             ) : user && studentRole !== "STUDENT" ? (
                 <Box
                 sx={{

@@ -104,41 +104,35 @@ export async function POST(
       { status: 400 }
     );
 
-  // Check if user already exists
+  // Check if user and student already exists
   let user = await prisma.user.findUnique({
     where: { email: cmuBasicInfo.cmuitaccount }, // Assuming cmuitaccount is the email
   });
 
-  let student;
+  let student = await prisma.student.findUnique({
+    where: { student_email: cmuBasicInfo.cmuitaccount }, // Assuming cmuitaccount is the email
+  });
 
-  if (!user) {
-    // If user does not exist, create a new user
-    if (cmuBasicInfo.itaccounttype_EN == "Student Account") {
-      user = await prisma.user.create({
-        data: {
-          email: cmuBasicInfo.cmuitaccount,
-          password: "", // Leave empty if using OAuth (or set a random password)
-          user_role: "STUDENT", // Set a default role, modify as needed
-        },
-      });
+  if (cmuBasicInfo.itaccounttype_EN === "Student Account") {
+    // If students
+    if (!student) {
       student = await prisma.student.create({
         data: {
-          student_email: user.email,
-          user_id: user.id, // Linking the student to the user via user_id
+          student_email: cmuBasicInfo.cmuitaccount,
           student_name: `${cmuBasicInfo.firstname_TH || " "} ${
             cmuBasicInfo.lastname_TH
           }`,
           student_id: String(cmuBasicInfo.student_id),
-          section_lab: null,
-          section_lec: null,
         },
       });
-    } else {
+    }
+  } else {
+    // teachers and other
+    if (!user) {
       user = await prisma.user.create({
         data: {
           email: cmuBasicInfo.cmuitaccount,
-          password: "", // Leave empty if using OAuth (or set a random password)
-          user_role: "TEACHER", // Set a default role, modify as needed
+          user_role: "TEACHER", // Assuming student is a user role
         },
       });
     }

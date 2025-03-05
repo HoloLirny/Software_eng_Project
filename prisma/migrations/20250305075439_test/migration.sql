@@ -5,7 +5,6 @@ CREATE TYPE "user_user_role" AS ENUM ('ADMIN', 'TEACHER', 'TA', 'STUDENT');
 CREATE TABLE "user" (
     "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT,
     "user_role" "user_user_role" DEFAULT 'TEACHER',
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
@@ -25,10 +24,7 @@ CREATE TABLE "student" (
     "student_name" VARCHAR(255) NOT NULL,
     "student_id" TEXT NOT NULL,
     "student_email" TEXT NOT NULL,
-    "section_lec" TEXT,
-    "section_lab" TEXT,
     "id" SERIAL NOT NULL,
-    "user_id" INTEGER NOT NULL,
 
     CONSTRAINT "student_pkey" PRIMARY KEY ("id")
 );
@@ -38,6 +34,8 @@ CREATE TABLE "student_course" (
     "id" SERIAL NOT NULL,
     "student_id" TEXT NOT NULL,
     "course_id" TEXT NOT NULL,
+    "section_lec" TEXT,
+    "section_lab" TEXT,
 
     CONSTRAINT "student_course_pkey" PRIMARY KEY ("id")
 );
@@ -104,9 +102,6 @@ CREATE UNIQUE INDEX "student_student_id_key" ON "student"("student_id");
 CREATE UNIQUE INDEX "student_student_email_key" ON "student"("student_email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "student_user_id_key" ON "student"("user_id");
-
--- CreateIndex
 CREATE INDEX "student_course_student_id_idx" ON "student_course"("student_id");
 
 -- CreateIndex
@@ -138,9 +133,6 @@ ALTER TABLE "user_course" ADD CONSTRAINT "user_course_course_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "user_course" ADD CONSTRAINT "user_course_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "student" ADD CONSTRAINT "student_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "student_course" ADD CONSTRAINT "student_course_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "student"("student_id") ON DELETE CASCADE ON UPDATE CASCADE;

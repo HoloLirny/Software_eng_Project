@@ -24,9 +24,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import QRgen from '../qrgen/page'
 import Swal from "sweetalert2";
 
-function Page({ course_id = "261361", pages, setPages, user }) {
+function Page({ course_id , pages, setPages, user }) {
   // TODO: change userEmail when login works
-  const [userEmail, setUserEmail] = useState(user.cmuBasicInfo[0].cmuitaccount); 
+  const [userEmail, setUserEmail] = useState(user.cmuitaccount); 
   const [columns, setColumns] = useState([]);
   const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
   const [attendanceData, setAttendanceData] = useState([]); // Store attendance API response
