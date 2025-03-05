@@ -22,13 +22,13 @@ import Grid from '@mui/material/Grid2';
 
 
 
-function Page({ course_id = "261361", pages, setPages, user }) {
+function Page({ course_id , pages, setPages, user }) {
     const [openAddTA, setOpenAddTA] = useState(false);
     const [taList, setTaList] = useState([]);
     const [files, setFiles] = useState<string[]>([]);
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('TEACHER'); {/*FIXME: change this when login is work*/}
-    const [userEmail, setUserEmail] = useState(user.cmuBasicInfo[0].cmuitaccount);
+    const [userEmail, setUserEmail] = useState(user.cmuitaccount);
 
 
     const pressAddTAButton = () => {
@@ -306,7 +306,7 @@ function Page({ course_id = "261361", pages, setPages, user }) {
         try {
             const filenameList: string[] = [];
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND}/file-api/get/get_path_by_id?course_id=${course_id}&user_email=${user.cmuBasicInfo[0].cmuitaccount}`
+                `${process.env.NEXT_PUBLIC_BACKEND}/file-api/get/get_path_by_id?course_id=${course_id}&user_email=${user.cmuitaccount}`
             );
 
             if (!response.ok) {
