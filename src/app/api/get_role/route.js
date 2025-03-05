@@ -5,7 +5,6 @@ import prisma from "../../../../prisma/prisma";
 
 export async function GET(request) {
   try {
-    // Extract course_id from the query parameters
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");
 
@@ -16,7 +15,7 @@ export async function GET(request) {
       );
     }
 
-    const role = await prisma.user.findUnique({
+    let role = await prisma.user.findUnique({
         where: { email: email }, 
         select: {
             user_role: true
@@ -24,13 +23,20 @@ export async function GET(request) {
     });
 
     if (!role) {   
-        return NextResponse.json(
-            { error: "Role not found" },
-            { status: 404 }
-        );
+        role = await prisma.student.findUnique({
+            where: { student_email: email }
+        });
     }
 
-    return NextResponse.json(role);
+    if(!role) {
+        return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 }
+        );
+    }else{
+        return NextResponse.json("Student role");
+    }
+
   } catch (error) {
     console.error("Error fetching course:", error);
     return NextResponse.json(
