@@ -1,14 +1,14 @@
 "use client"
-import { Box, Card, Typography } from '@mui/material';
+import { Box, Button, Card, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import HomeIcon from '@mui/icons-material/Home';
+import HomeIcon from '@mui/icons-material/ArrowBack';
 import Grid from '@mui/material/Grid2';
 import '@fontsource/prompt';
 import QRCode from "qrcode";
 import Image from 'next/image';
 import iconimg from '../../../../public/icon.png';
 
-function Page({time, mode, expireTime, courseId}) {
+function Page({time, mode, expireTime, courseId,setPage}) {
     // const time = 200;
     // const mode = 'time';
     // const expireTime = 1;
@@ -25,6 +25,7 @@ function Page({time, mode, expireTime, courseId}) {
     const [timeLeft, setTimeLeft] = useState<number>(time);
 
     const generateQRCode = async () => {
+        console.log(expireTime)
         if (timeLeft <= 0) return; // Don't generate QR if time expired
         try {
             const res = await fetch(
@@ -79,7 +80,9 @@ function Page({time, mode, expireTime, courseId}) {
         <Box sx={{ bgcolor: 'white', minHeight: "100vh" }}>
             <Box sx={{ height: '135px', bgcolor: '#BF48DD', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%', px: 4 }}>
-                    <HomeIcon sx={{ fontSize: { xs: 40, sm: 45, lg: 50 } }} />
+                    <Button color={"secondary"} onClick={()=>{setPage("attendance")}}>
+                        <HomeIcon sx={{ fontSize: { xs: 40, sm: 45, lg: 50 } }} />
+                    </Button>
                     <Typography fontWeight='bold' sx={{ fontSize: { xs: 36, sm: 46 } }}>
                         {courseId}
                     </Typography>
