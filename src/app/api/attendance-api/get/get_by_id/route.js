@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../../prisma/prisma";
 
-// http://localhost:3000/api/attendance-api/get/get_by_id?course_id=261361&user_email=teacher@example.com
+// http://localhost:3000/api/attendance-api/get/get_by_id?course_id=261361&user_email=teacher@example.com&date=01-01-2022
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get("course_id");
     const user_email = searchParams.get("user_email");
+    const date = searchParams.get("date");
 
-    if (!courseId || !user_email) {
+    if (!courseId || !user_email || !date) {
       return NextResponse.json(
-        { error: "Missing course_id and user email parameter" },
+        { error: "Missing course_id, date and user email parameter" },
         { status: 400 }
       );
     }
@@ -38,6 +39,17 @@ export async function GET(request) {
       );
     }
 
+    const exitingdate = await prisma.attendance_detail.findFirst({
+      where: { date: date, course_id: courseId },
+    });
+
+    if (!exitingdate) {
+      return NextResponse.json(
+        { error: "Date not found" },
+        { status: 404 }
+      );
+    }
+
     const exitingcouse = await prisma.course.findFirst({
       where: {
         course_id: courseId,
@@ -54,6 +66,7 @@ export async function GET(request) {
     const attendance = await prisma.attendance.findMany({
       where: {
         course_id: courseId, 
+        detail_id: exitingdate.id
       },
       include: {
         attendance_detail: {
