@@ -6,7 +6,7 @@ export async function POST(req) {
 
     if (!date || !course_id || !user_email) {
       return new Response(
-        JSON.stringify({ message: "date and course_id are required" }),
+        JSON.stringify({ message: "date and course_id and user_email are required" }),
         { status: 400 }
       );
     }

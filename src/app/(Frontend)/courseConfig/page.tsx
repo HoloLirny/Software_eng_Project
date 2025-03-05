@@ -1,16 +1,11 @@
 //FIXME: change responsive of the page
 'use client';
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
     Box,
     Button,
     Card,
     Collapse,
-    Dialog, 
-    DialogActions, 
-    DialogContent, 
-    DialogTitle,
     Typography,
     IconButton,
     List,
@@ -23,64 +18,36 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import Swal from 'sweetalert2'
-import axios from 'axios';
 import Grid from '@mui/material/Grid2';
 
 
-function Page({ course_id, pages, setPages }) {
-   console.log(pages)
-   console.log(course_id)
-    const router = useRouter(); 
+
+function Page({ course_id = "261361", pages, setPages, user }) {
     const [openAddTA, setOpenAddTA] = useState(false);
     const [taList, setTaList] = useState([]);
-    const [initialPassword, setInitialPassword] = useState('');
-    const [openTAEmailPopup, setOpenTAEmailPopup] = useState(false);
-    const [files, setFiles] = useState([
-    ]);
+    const [files, setFiles] = useState<string[]>([]);
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('TEACHER'); {/*FIXME: change this when login is work*/}
+    const [userEmail, setUserEmail] = useState(user.cmuBasicInfo[0].cmuitaccount);
 
-    const validatePassword = (password: string) => {
-        return password.length >= 8;
-    }
-
-    const handleCreateButton = () => {
-        if (validatePassword(initialPassword)) {
-            setOpenTAEmailPopup(true);
-        }
-    }
 
     const pressAddTAButton = () => {
         if (validateEmail(email)) {
-            setOpenTAEmailPopup(false);
             handleAddTA();
+            setEmail('');
         }
     }
 
-    const pressCancelButton = () => {
-        setEmail('');
-        setOpenTAEmailPopup(false);
-    }
-
     const handleAddTA = async () => {
-        const newTA = {course_id: course_id, email: email, password: initialPassword };
+        const newTA = {course_id: course_id, email: email, user_email: userEmail};
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/ta-api/add`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newTA),
             });
-            if (response.status == 201){
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'TA has been added!',
-                    icon: 'success',
-                    confirmButtonText: 'OK',
-                    willClose: () => setOpenTAEmailPopup(true)
-                })
-                setEmail('');
-                fetchTA();
-            }else{
+
+            if(!response.ok){
                 Swal.fire({
                     title: 'Error!',
                     text: 'TA has not been added!',
@@ -88,8 +55,22 @@ function Page({ course_id, pages, setPages }) {
                     confirmButtonText: 'OK'
                 })
             }
+            
+            setEmail('');
+            fetchTA();
+            Swal.fire({
+                title: 'Success!',
+                text: 'TA has been added!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+            })
         } catch (error) {
-            console.error("Error adding TA:", error);
+            Swal.fire({
+                title: 'Error!',
+                text: 'TA has not been added!',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            })
         }
     };
 
@@ -115,12 +96,12 @@ function Page({ course_id, pages, setPages }) {
 
     const handleDeleteTA = async (index: number) => {
         const toDeleteTA = taList[index];
+        const taEmail = toDeleteTA.email;
+
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/ta-api/delete`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({id: toDeleteTA.id}),
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/delete?ta_email=${taEmail}&user_email=${userEmail}&course_id=${course_id}`
+              );
 
             if (response.status == 200){
                 Swal.fire({
@@ -143,72 +124,174 @@ function Page({ course_id, pages, setPages }) {
         }
     };
     
-    const handleFileUpload = async (event) => {
-        const file = event.target.files[0]; // Get the selected file
-        
-        if (!file) return;
 
-        uploadFile(file);
+    const confirmDeleteFile = (filename: string) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You will not be able to recover this file!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, keep it',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                handleDeleteFile(filename);
+            }
+        });
     };
 
-    const handleDrop = (event) => {
-        event.preventDefault();
-        const droppedFiles = Array.from(event.dataTransfer.files);
-        const excelFiles = droppedFiles.filter(file => file.name.endsWith(".xls") || file.name.endsWith(".xlsx"));
+    const handleDeleteFile = async (filename: string) => {
+        console.log(filename)
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/file-api/delete`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    file_name: filename,
+                    course_id: course_id,
+                    user_email: userEmail
+                })
+            });
+            console.log(response)
+            if (!response.ok) {
+                let errorText = 'Failed to delete file!';
+                try {
+                    const errorData = await response.json(); // Ensure response body is not already used
+                    if (errorData && errorData.error) {
+                        errorText = errorData.error;
+                    }
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                }
+            
+                Swal.fire({
+                    title: 'Error!',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            fetchFile();
+            Swal.fire({
+                title: 'Success!',
+                text: 'File is deleted!',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            })
+        } catch (error) {
+
+        }
+    }
+
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!event.target.files || event.target.files.length === 0) return; // Ensure a file is selected
+    
+        const formData = new FormData();
+        formData.append('file', event.target.files[0]); // Add the file to FormData
+    
+        console.log([...formData.entries()]); // Debugging: See what is inside FormData
+        uploadFile(formData);
+    };
+
+    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault(); // Prevent default behavior (like opening the file)
+        
+        const droppedFiles = Array.from(event.dataTransfer.files); // Convert FileList to an array
+        const excelFiles = droppedFiles.filter(file => file.name.endsWith('.xls') || file.name.endsWith('.xlsx'));
+        
         if (excelFiles.length === 0) {
             Swal.fire({ title: 'Error!', text: 'Please upload an Excel file (.xls or .xlsx)', icon: 'error', confirmButtonText: 'OK' });
             return;
         }
-
-        uploadFile(excelFiles[0]);
+        
+        const formData = new FormData();
+        formData.append('file', excelFiles[0]); // Add the first Excel file to FormData
+        
+        console.log([...formData.entries()]); // Debugging: See what is inside FormData
+        uploadFile(formData); // Upload the FormData
     };
 
-    const uploadFile = async (file) => {
-        const formData = new FormData();
-        // FIXME: Change course_id and section to the actual course_id and section
-        formData.append("file", file); // Append the file
-        formData.append("course_id", course_id); // Append the course_id
-        formData.append("section", "001")
-
+    const readFileToDB = async (filename: string) =>  {
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/file-api/upload`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data", // Required for file uploads
-                },
+            const response = await fetch (`${process.env.NEXT_PUBLIC_BACKEND}/file-api/read_file`, {
+                method: "POST",
+                body: JSON.stringify({
+                    file_name: filename,
+                    user_email: userEmail
+                })
             });
-    
-            if (response.status === 200) {
+
+            if(!response.ok){
+                Swal.fire({ 
+                    title: 'Error!', 
+                    text: 'Read uploaded file failed!', 
+                    icon: 'error', 
+                    confirmButtonText: 'OK' 
+                });
+            }
+            fetchFile()
+
+        } catch (error) {
+            Swal.fire({ 
+                title: 'Error!', 
+                text: 'Read uploaded file failed!', 
+                icon: 'error', 
+                confirmButtonText: 'OK' 
+            });
+        }
+    }
+
+    const uploadFile = async (formData: FormData) => {
+        try {
+            formData.append("course_id", course_id); // Append the course_id
+            formData.append("user_email", userEmail); // Append the user_email
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/file-api/upload`, {
+                method: "POST",
+                body: formData,
+            });  
+            if (response.ok) {
+                const data = await response.json();
+                const fileUrl = data.fileUrl;
+                const fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
+                await readFileToDB(fileName);
+
                 Swal.fire({ 
                     title: 'Success!', 
                     text: 'File uploaded successfully!', 
                     icon: 'success', 
-                    confirmButtonText: 'OK' });
-                fetchFile();
+                    confirmButtonText: 'OK' 
+                });
             } else {
+
                 Swal.fire({ 
                     title: 'Error!', 
                     text: 'File upload failed!', 
                     icon: 'error', 
-                    confirmButtonText: 'OK' });
+                    confirmButtonText: 'OK' 
+                });
             }
         } catch (error) {
-            console.error("Error uploading file:", error);
             Swal.fire({ 
                 title: 'Error!', 
                 text: 'An error occurred!', 
                 icon: 'error', 
-                confirmButtonText: 'OK' });
+                confirmButtonText: 'OK' 
+            });
         }
-    }
+    };
 
     const fetchTA = async () => {
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/get/get_by_id?course_id=${course_id}`
+                `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/get/get_by_id?course_id=${course_id}&user_email=${userEmail}`
               );
               if (!response.ok) {
                 const errorData = await response.json();
-                alert(errorData.error || "Failed to fetch TA data");
                 return;
               }
               const data = await response.json(); // Parse the response body as JSON
@@ -219,19 +302,39 @@ function Page({ course_id, pages, setPages }) {
     };
 
     const fetchFile = async () => {
+        
         try {
+            const filenameList: string[] = [];
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND}/file-api/get/get_by_id?course_id=${course_id}`
+                `${process.env.NEXT_PUBLIC_BACKEND}/file-api/get/get_path_by_id?course_id=${course_id}&user_email=${user.cmuBasicInfo[0].cmuitaccount}`
             );
 
             if (!response.ok) {
-                const errorData = await response.json();
-                alert(errorData.error || "Failed to fetch files");
+                if (response.status === 404) {
+                    // If the status is 404, set files to an empty array
+                    setFiles([]);
+                } else {
+                    // For other errors, handle them normally
+                    const errorData = await response.json();
+                    Swal.fire({
+                        title: 'Error!',
+                        text: errorData.error || "Failed to fetch files",
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
                 return;
-              }
+            }
 
-              const data = await response.json();
-            setFiles(data || []);
+            const data = await response.json();
+            const files = data.files;
+            files.forEach(file => {
+            const fileUrl = file.file_url;
+            const fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
+            filenameList.push(fileName);
+            });
+            
+            setFiles(filenameList);
         } catch (error) {
             console.error("Error fetching file:", error);
         }
@@ -288,6 +391,7 @@ function Page({ course_id, pages, setPages }) {
                         {/* TA box */}
                             <Box sx = {{ flexDirection: 'column', width: '100%'}}>
                                 {/* Add TA Box */}
+                                {/* TODO: change way to check role and show */}
                                 {role == 'TEACHER' ?
                                     <Box
                                         sx={{
@@ -319,14 +423,15 @@ function Page({ course_id, pages, setPages }) {
                                                 <TextField
                                                     fullWidth
                                                     variant="outlined"
-                                                    label="Initial password"
-                                                    value={initialPassword}
-                                                    onChange={(e) => setInitialPassword(e.target.value)}
-                                                    sx={{ bgcolor: '#fff' }}
+                                                    placeholder="cmu_email@cmu.ac.th..."
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    sx={{ mt: 1 }}
                                                 />
-                                                { validatePassword(initialPassword) ? <Box></Box> : 
-                                                <Typography sx={{ color: 'red', fontSize: '0.8rem', mb: 2 }}>
-                                                    Password must be at least 8 characters</Typography>}
+
+                                                {!validateEmail(email) && email.length > 0 ? 
+                                                <Typography sx={{ color: 'red', fontSize: '0.8rem' }}>Please input valid email</Typography> 
+                                                : <Box></Box>}
 
                                                 <Button
                                                     fullWidth
@@ -337,35 +442,9 @@ function Page({ course_id, pages, setPages }) {
                                                         '&:hover': { bgcolor: '#7B1395',
                                                          },mt : 1
                                                     }}
-                                                    onClick={() => handleCreateButton()}>
-                                                    Create
+                                                    onClick={() => pressAddTAButton()}>
+                                                    Add
                                                 </Button>
-
-                                                {/* Popup Dialog */}
-                                                <Dialog open={openTAEmailPopup} onClose={() => setOpenTAEmailPopup(false)} sx={{ '& .MuiPaper-root': { borderRadius: 3, padding: 2 } }}>
-                                                    <DialogTitle sx={{ color: '#8F16AD', fontWeight: 'bold', textAlign: 'center' }}>
-                                                        Please input email here.
-                                                    </DialogTitle>
-                                                    <DialogContent>
-                                                        <TextField
-                                                            fullWidth
-                                                            variant="outlined"
-                                                            placeholder="cmu_email@cmu.ac.th..."
-                                                            value={email}
-                                                            onChange={(e) => setEmail(e.target.value)}
-                                                            sx={{ mt: 1 }}
-                                                        />
-                                                        {!validateEmail(email) && email.length > 0 ? <Typography sx={{ color: 'red', fontSize: '0.8rem' }}>Please input valid email</Typography> : <Box></Box>}
-                                                    </DialogContent>
-                                                    <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
-                                                        <Button sx={{ bgcolor: '#8F16AD', color: '#fff', fontWeight: 'bold', width: 100, fontSize : "1rem" }} onClick={pressAddTAButton}>
-                                                            ADD
-                                                        </Button>
-                                                        <Button sx={{ bgcolor: 'red', color: '#fff', fontWeight: 'bold' }} onClick={pressCancelButton}>
-                                                            Cancel
-                                                        </Button>
-                                                    </DialogActions>
-                                                </Dialog>
 
                                             </Box>
                                         </Collapse>
@@ -384,7 +463,7 @@ function Page({ course_id, pages, setPages }) {
                                     </Box>
 
                                     <Box sx = {{ maxHeight: 250, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
-                                        {taList.map((ta, index) => (
+                                        {taList.length > 0 ? taList.map((ta, index) => (
                                             <ListItem
                                                 key={index}
                                                 sx={{
@@ -408,7 +487,10 @@ function Page({ course_id, pages, setPages }) {
                                                     
 
                                             </ListItem>
-                                        )).reverse()} {/* Reverse the list to show the latest TA first */}
+                                        )).reverse()
+                                        : <Typography sx={{ color: '#8F16AD', fontSize: '0.9rem' }}>
+                                        No Ta found
+                                    </Typography>} 
                                     </Box>
                                 </List>
                             </Box>
@@ -419,7 +501,7 @@ function Page({ course_id, pages, setPages }) {
                     {/* File Box */}
                         <Box sx = {{flexDirection: 'column',width: '90%', ml: 'auto', mr: 'auto'}}>
                             {/* Upload files box */}
-                            <Box sx={{
+                            {role == 'TEACHER'?<Box sx={{
                                 border: '2px dashed #8F16AD',
                                 padding: 3,
                                 borderRadius: 2,
@@ -458,7 +540,8 @@ function Page({ course_id, pages, setPages }) {
                                         <input hidden type="file" accept=".xls,.xlsx" onChange={handleFileUpload} />
                                     </Button>
                                 </Box>         
-                            </Box>
+                            </Box> : <Box></Box>}
+                            
                             
                             {/* show all recently upload file */}
                             <Box>
@@ -468,14 +551,25 @@ function Page({ course_id, pages, setPages }) {
                                                 <Typography variant="subtitle1" sx={{ color: '#8F16AD', fontWeight: 'bold' }}>Recent files</Typography>
                                             </Box>
                                             <Box sx = {{ maxHeight: 100, overflow: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8F16AD #F5F5F5'}}>
-                                                <List>
-                                                    {files.map((file, index) => (
-                                                        <ListItem key={index} sx={{ display: 'flex', alignItems: 'center' }}>
-                                                            <InsertDriveFileIcon sx={{ color: '#8F16AD', mr: 1 }} />
-                                                            <ListItemText primary={file.file_name} sx={{ color: '#8F16AD' }} />
-                                                        </ListItem>
-                                                    ))}
-                                                </List>
+                                            <List>
+                                                {files.map((file, index) => (
+                                                    <ListItem 
+                                                        key={index} 
+                                                        sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                                                        onClick={() => setPages("attendance")}
+                                                    >
+                                                        <InsertDriveFileIcon sx={{ color: '#8F16AD', mr: 1 }} />
+                                                        <ListItemText primary={file} sx={{ color: '#8F16AD' }} />
+                                                        <DeleteIcon 
+                                                            sx={{ color: '#8F16AD', mr: 1, cursor: 'pointer' }} 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation(); // Prevents triggering onClick for ListItem
+                                                                confirmDeleteFile(file)
+                                                            }} 
+                                                        />
+                                                    </ListItem>
+                                                ))}
+                                            </List>
                                             </Box>
                                         </Box>
                                     )}
@@ -484,11 +578,6 @@ function Page({ course_id, pages, setPages }) {
                     </Grid>         
                 </Grid>
 
-                <Button onClick={()=>{setPages("attendance")}}>
-                    next
-                </Button>
-              
-               
             </Card>
 
         </Box>

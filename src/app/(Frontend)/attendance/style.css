@@ -1,0 +1,3 @@
+.swal-popup {
+    z-index: 9999 !important; /* Ensure alert is above Material-UI Dialog */
+}
