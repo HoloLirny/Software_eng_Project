@@ -7,6 +7,7 @@ import '@fontsource/prompt';
 import QRCode from "qrcode";
 import Image from 'next/image';
 import iconimg from '../../../../public/icon.png';
+import axios from 'axios';
 
 function Page({time, mode, expireTime, courseId,setPage}) {
     // const time = 200;
@@ -14,13 +15,8 @@ function Page({time, mode, expireTime, courseId,setPage}) {
     // const expireTime = 1;
     // const courseId = '261335';
 
-    const studentData = [
-        { id: '650610111', name: 'สมชาย ใจดี' },
-        { id: '650610112', name: 'สมหญิง สุขสันต์' },
-        { id: '650610113', name: 'อนันต์ รักเรียน' },
-        { id: '650610114', name: 'จารุวรรณ ขยันทำงาน' },
-    ];
-
+    const [students, setStudents] = useState(null);
+    
     const [qrCode, setQrCode] = useState<string>("");
     const [timeLeft, setTimeLeft] = useState<number>(time);
 
@@ -57,6 +53,24 @@ function Page({time, mode, expireTime, courseId,setPage}) {
 
         return () => clearInterval(countdownInterval);
     }, []);
+
+    useEffect(() => {
+        const fetchstudent = async (userEmail: string) => {
+            try {
+                const result = await axios.get(
+                    `${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/get/get_by_id`,
+                    {
+                        params: { user_email: userEmail },
+                    }
+                );
+                const studentlist = result.data.map((item: any) => item.course); 
+                setStudents(studentlist); // Set only the course data
+            } catch (error) {
+                console.error("Error fetching courses:", error);
+            }
+        };
+        fetchstudent(user.cmuitaccount);
+    }, [students]);
 
     useEffect(() => {
         // Generate QR Code initially
@@ -150,7 +164,7 @@ function Page({time, mode, expireTime, courseId,setPage}) {
                         </Box>
 
                         <Box sx={{ bgcolor: '#FCEFFF', height: '100%', p: 2, width: '95%', mt: 0.5 }}>
-                            {studentData.map((student, index) => (
+                            {students.map((student, index) => (
                                 <Box
                                     key={index}
                                     sx={{
@@ -162,7 +176,7 @@ function Page({time, mode, expireTime, courseId,setPage}) {
                                     }}
                                 >
                                     <Typography sx={{ fontFamily: 'Prompt' }}>
-                                        {student.id} {student.name}
+                                        {student.student_id} {student.student_name}
                                     </Typography>
                                 </Box>
                             ))}
