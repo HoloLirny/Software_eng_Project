@@ -315,10 +315,10 @@ function Page() {
               }
             );
       
-            console.log("Role response:", response.data);
+            console.log("Role response:", response.data.user_role);
             
             // Check if user_role is "STUDENT" and update state
-            setStudentRole(response.data);
+            setStudentRole(response.data.user_role);
           } catch (error) {
             console.error("Error fetching role:", error);
             setStudentRole("STUDENT"); // Handle error case
@@ -346,7 +346,7 @@ function Page() {
                 console.error("Error fetching courses:", error);
             }
         };
-    
+        console.log("role",studentRole)
         if (studentRole !== "STUDENT" && user?.cmuitaccount) {
             fetchCourses(user.cmuitaccount); // Fetch courses for the user
         }
@@ -369,9 +369,9 @@ function Page() {
     return (
         <>
         {pages == "courseconfig" ? (
-            <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages}/>
+            <CourseConfig course_id={selectcourseconfig} pages={pages} setPages={setPages} user={res}/>
         ): pages == "attendance" ? (
-             <Attendance course_id={selectcourseconfig} pages={pages} setPages={setPages }/>
+             <Attendance course_id={selectcourseconfig} pages={pages} setPages={setPages } user={res}/>
         ) : studentRole === "STUDENT" ? (
             <Box
             sx={{
