@@ -62,6 +62,11 @@ export async function GET(request) {
             description: true,
           },
         },
+        student: {
+          select: {
+            student_name: true,
+          },
+        },
       },
     });
 
