@@ -98,9 +98,17 @@ function Page({ course_id , pages, setPages, user, role }) {
         const taEmail = toDeleteTA.email;
 
         try {
+	const TA = {
+                ta_email: taEmail,
+                user_email: userEmail,
+                course_id:course_id,
+          }
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/delete?ta_email=${taEmail}&user_email=${userEmail}&course_id=${course_id}`
-              );
+                `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/delete`,
+                {method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(TA),}
+            );            
 
             if (response.status == 200){
                 Swal.fire({
@@ -111,6 +119,7 @@ function Page({ course_id , pages, setPages, user, role }) {
                 })
                 fetchTA();
             }else{
+		const errorData = response.
                 Swal.fire({
                     title: 'Error!',
                     text: 'TA has not been deleted!',
@@ -559,13 +568,13 @@ function Page({ course_id , pages, setPages, user, role }) {
                                                     >
                                                         <InsertDriveFileIcon sx={{ color: '#8F16AD', mr: 1 }} />
                                                         <ListItemText primary={file} sx={{ color: '#8F16AD' }} />
-                                                        <DeleteIcon 
+                                                        {role == "TEACHER" && (<DeleteIcon 
                                                             sx={{ color: '#8F16AD', mr: 1, cursor: 'pointer' }} 
                                                             onClick={(e) => {
                                                                 e.stopPropagation(); // Prevents triggering onClick for ListItem
                                                                 confirmDeleteFile(file)
                                                             }} 
-                                                        />
+                                                        />)}
                                                     </ListItem>
                                                 ))}
                                             </List>

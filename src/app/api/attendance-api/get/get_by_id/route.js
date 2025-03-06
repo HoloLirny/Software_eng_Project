@@ -78,6 +78,7 @@ export async function GET(request) {
         student: {
           select: {
             student_name: true,
+	    student_id: true,
           },
         },
       },

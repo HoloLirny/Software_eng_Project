@@ -501,13 +501,13 @@ function Page({ course_id , pages, setPages, user, role }) {
   }
   useEffect(() => {
     fetchAttendanceData();
-  }, [students, columns]);
+  }, [students, columns,page]);
 
   useEffect(() => {
     fetchStudenInClass();
     fetchDates();
     fetchAttendanceData();
-  }, []);
+  }, [page]);
 
   return (
     <>

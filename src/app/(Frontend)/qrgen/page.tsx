@@ -54,28 +54,27 @@ function Page({time, mode, expireTime, courseId,setPage,user_email,date}) {
         return () => clearInterval(countdownInterval);
     }, []);
 
-    useEffect(() => {
-        const fetchStudent = async () => {
-            if (!user_email) return;
 
+useEffect(() => {
+    if (!user_email || !courseId || !date) return;
+
+    const interval = setInterval(() => {
+        const fetchStudent = async () => {
             try {
                 const result = await axios.get(
                     `${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/get/get_by_id`,
                     {
-                        params: {
-                            course_id: "261361",  // Example course_id (should be dynamic)
-                            user_email: user_email,
-                            date: date,  // Example date (should be dynamic)
-                        },
+                        params: { course_id: courseId, user_email, date },
                     }
                 );
 
                 const studentList = result.data.map((item: any) => ({
-                    name: item.student.student_name,
+                    student_name: item.student.student_name,
+                    student_id: item.student.student_id,
                     date: item.attendance_detail.date,
                     description: item.attendance_detail.description,
                 }));
-                console.log(date)
+		console.log("studentList",studentList)
                 setStudents(studentList);
             } catch (error) {
                 console.error("Error fetching attendance:", error);
@@ -83,8 +82,12 @@ function Page({time, mode, expireTime, courseId,setPage,user_email,date}) {
         };
 
         fetchStudent();
-    }, [user_email]);
+    }, 1000); // 👈 Fetch every second
 
+    return () => clearInterval(interval); // Cleanup on unmount
+}, [user_email, courseId, date]); 
+
+        
     useEffect(() => {
         // Generate QR Code initially
         generateQRCode();
@@ -96,6 +99,10 @@ function Page({time, mode, expireTime, courseId,setPage,user_email,date}) {
 
         return () => clearInterval(qrInterval);
     }, []);
+
+   useEffect(()=>{
+	console.log(students)
+   },[students])
 
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -176,7 +183,7 @@ function Page({time, mode, expireTime, courseId,setPage,user_email,date}) {
                             </Typography>
                         </Box>
 
-                        <Box sx={{ bgcolor: '#FCEFFF', height: '100%', p: 2, width: '95%', mt: 0.5 }}>
+                        <Box sx={{overflowY: "auto", bgcolor: '#FCEFFF', height: '100%', p: 2, width: '95%', mt: 0.5 }}>
                             {students.map((student, index) => (
                                 <Box
                                     key={index}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner,Html5QrcodeScanType } from 'html5-qrcode';
 import { ScaleLoader } from 'react-spinners';
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ const QRCodeScanner = ({student_id}) => {
     const [validToken, setValidToken] = useState<boolean>(false);
     const [userEmail, setUserEmail] = useState("");
     
-    const checkAttendance = async () => {
+    const checkAttendance = async (courseId, user_email) => {
         try {
             const date = new Date(); // Current date and time
             const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -31,7 +31,7 @@ const QRCodeScanner = ({student_id}) => {
                     course_id: courseId,
                     student_id: student_id,
                     date: day,
-                    user_email: userEmail,
+                    user_email: user_email,
                 })
             })
 
@@ -55,10 +55,8 @@ const QRCodeScanner = ({student_id}) => {
                 text: 'Check success',
                 icon: 'success',
                 confirmButtonText: 'OK',
-            }).then(() => {
-                router.push("../");
-            });
-
+            })
+		router.push("../");
         } catch (error){
             Swal.fire({
                 title: 'Error!',
@@ -70,7 +68,7 @@ const QRCodeScanner = ({student_id}) => {
     }
     const handleScanQRCode = async (result) => {
         const token = result.split('/').pop(); // Extracts the last part after the last slash
-        
+        console.log("result",result , "........." , token)
         if (token) {
             try {
             const res = await fetch("/api/generate-qr", {
@@ -82,15 +80,15 @@ const QRCodeScanner = ({student_id}) => {
             });
 
             const data = await res.json();
-    
+   
             if (data.valid) {
                 console.log(data)
                 setStatus("Attendance Marked Successfully");
                 setCourseId(data.courseId || "Unknown Course ID");
                 setUserEmail(data.user_email || "")
                 setMode(data.mode || "Unknown Mode");
-                setValidToken(true);
-                checkAttendance();
+                await checkAttendance(data.courseId, data.user_email);
+
             } else {
                 setStatus("Token Expired. Please scan a new QR code.");
                 setCourseId("N/A");
@@ -108,35 +106,43 @@ const QRCodeScanner = ({student_id}) => {
             setCourseId("N/A");
             return;
         }
-
-        if (validToken) {
-            checkAttendance();
-        }
     };
+
 
     useEffect(() => {
         if (typeof window === 'undefined') return; // Ensure client-side execution
+
         const scanner = new Html5QrcodeScanner(
             'reader',
             {
-                qrbox: { width: 250, height: 250 },
-                fps: 5,
+                qrbox: { width: 250, height: 250 },  // Bigger scan area
+                fps: 10,  // Faster scanning
+                aspectRatio: 1.0,  // Square scanner
+                rememberLastUsedCamera: true,  // Remembers last used camera
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA] // Only use camera
             },
             false
         );
 
-        scanner.render(
-            (result) => {
-                scanner.clear();
-               
-                setScanResult(result);
-            },
-            (err) => console.warn(err)
-        );
+        const onScanSuccess = (result) => {
+            scanner.clear();  // Stop scanning after successful result
+            setScanResult(result);  // Set the scanned result
+            handleScanQRCode(result);
+        };
 
-        return () => scanner.clear(); // Cleanup scanner on unmount
-    }, []);
+        const onScanError = (err) => {
+            console.warn(err);  // Log scan errors
+        };
 
+        // Start scanning automatically when the component mounts
+        scanner.render(onScanSuccess, onScanError);
+
+        // Cleanup scanner when the component unmounts
+        return () => {
+            scanner.clear();
+        };
+    }, []);    
+ 
     return (
         <Box
         sx={{
@@ -166,7 +172,7 @@ const QRCodeScanner = ({student_id}) => {
           >
               <h2>QR Code Scanner</h2>
               {scanResult ? (
-                  <p>Scanned Result: {scanResult}</p>
+                  <></>
               ) : (
                   <div id="reader"></div>
               )}

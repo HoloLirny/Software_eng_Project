@@ -328,31 +328,9 @@ function Page() {
           fetchCourses(user.cmuitaccount); 
         }
           
-    }, [user]);
+    }, [user,addOpen]);
 
-    useEffect(() => {
-        const fetchHistory = async () => {
-            if (!user?.cmuitaccount) return; // Ensure user is available before making the request
-        
-            try {
-            const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_BACKEND}/attendance-api/get/get_student_history`,
-                {
-                params: { student_id: user.student_id }, // Pass email as query param
-                }
-            );
-            console.log("responce student sss ",response.data)
-            setHistory(response.data);
-            } catch (error) {
-            console.error("Error fetching role:", error);
-            setStudentRole("STUDENT"); // Handle error case
-            }
-        };
     
-        fetchHistory();
-          
-        }, [history]);
-
     // useEffect(() => {
        
     //     console.log("test role",studentRole)
@@ -960,30 +938,22 @@ function Page() {
                             alignItems: 'center', // Center horizontally
                         }}
                     >       
-                            <Button sx={{ bgcolor: '#F2BEFF', padding: 2, width: '60%', boxShadow: 3 }} onClick={()=> { setPages("scan")}}>
-                                <Typography variant="h4" fontWeight="bold" color='#8F16AD' textAlign="left" sx={{ fontFamily: 'Prompt' }}>
+                             <Button sx={{ bgcolor: '#F2BEFF', padding: 2, width: '100%', boxShadow: 3 }} onClick={()=> { setPages("scan")}}>
+                            <Typography 
+                            fontWeight="bold" 
+                            color='#8F16AD' 
+                            textAlign="left" 
+                            sx={{ 
+                                fontFamily: 'Prompt',
+                                fontSize: { xs: '16px', sm: '18px', md: '20px' } // ✅ Fixed missing bracket
+                            }}
+                            >
                                     Click to scan
                                 </Typography>
                             </Button>
 
                         
-                            {history.map((history, index) => (
-                                            <Box
-                                                key={index}
-                                                sx={{
-                                                    border: '1px solid #8F16AD',
-                                                    borderRadius: 4,
-                                                    p: 2,
-                                                    mb: 2,
-                                                    color: '#8F16AD',
-                                                }}
-                                            >
-                                                <Typography sx={{ fontFamily: 'Prompt' }}>
-                                                    {history.student_id} {history.student_name}
-                                                </Typography>
-                                            </Box>
-                                        ))}
-                        {/* <Box
+                           {/* <Box
                             sx={{
                                 display: 'flex',
                                 justifyContent: 'center',
@@ -1003,7 +973,7 @@ function Page() {
                                 Access Denied, Please Contact Admin
                             </Typography>
                         </Box> */}
-                        <Box>
+                        {/*<Box>
                             <Grid container>
                                 <Grid size={{ xs: 12, md: 5 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 6 }}>
                                     <Box sx={{ bgcolor: '#F2BEFF', padding: 2, width: '100%', boxShadow: 3 }}>
@@ -1017,7 +987,7 @@ function Page() {
                                     </Box>
                                 </Grid>
                             </Grid>
-                        </Box>
+                        </Box> */}
                     </Card>
 
                 </Box>
