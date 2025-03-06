@@ -78,6 +78,10 @@ export async function GET(request) {
         student: {
           select: {
             student_name: true,
+<<<<<<< HEAD
+=======
+	    student_id: true,
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
           },
         },
       },

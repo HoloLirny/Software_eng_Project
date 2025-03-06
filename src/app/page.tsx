@@ -328,6 +328,7 @@ function Page() {
           fetchCourses(user.cmuitaccount); 
         }
           
+<<<<<<< HEAD
     }, [user]);
 
     useEffect(() => {
@@ -353,6 +354,11 @@ function Page() {
           
         }, [history]);
 
+=======
+    }, [user,addOpen]);
+
+    
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
     // useEffect(() => {
        
     //     console.log("test role",studentRole)
@@ -960,13 +966,27 @@ function Page() {
                             alignItems: 'center', // Center horizontally
                         }}
                     >       
+<<<<<<< HEAD
                             <Button sx={{ bgcolor: '#F2BEFF', padding: 2, width: '60%', boxShadow: 3 }} onClick={()=> { setPages("scan")}}>
                                 <Typography variant="h4" fontWeight="bold" color='#8F16AD' textAlign="left" sx={{ fontFamily: 'Prompt' }}>
+=======
+                             <Button sx={{ bgcolor: '#F2BEFF', padding: 2, width: '100%', boxShadow: 3 }} onClick={()=> { setPages("scan")}}>
+                            <Typography 
+                            fontWeight="bold" 
+                            color='#8F16AD' 
+                            textAlign="left" 
+                            sx={{ 
+                                fontFamily: 'Prompt',
+                                fontSize: { xs: '16px', sm: '18px', md: '20px' } // ✅ Fixed missing bracket
+                            }}
+                            >
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
                                     Click to scan
                                 </Typography>
                             </Button>
 
                         
+<<<<<<< HEAD
                             {history.map((history, index) => (
                                             <Box
                                                 key={index}
@@ -984,6 +1004,9 @@ function Page() {
                                             </Box>
                                         ))}
                         {/* <Box
+=======
+                           {/* <Box
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
                             sx={{
                                 display: 'flex',
                                 justifyContent: 'center',
@@ -1003,7 +1026,11 @@ function Page() {
                                 Access Denied, Please Contact Admin
                             </Typography>
                         </Box> */}
+<<<<<<< HEAD
                         <Box>
+=======
+                        {/*<Box>
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
                             <Grid container>
                                 <Grid size={{ xs: 12, md: 5 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 6 }}>
                                     <Box sx={{ bgcolor: '#F2BEFF', padding: 2, width: '100%', boxShadow: 3 }}>
@@ -1017,7 +1044,11 @@ function Page() {
                                     </Box>
                                 </Grid>
                             </Grid>
+<<<<<<< HEAD
                         </Box>
+=======
+                        </Box> */}
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
                     </Card>
 
                 </Box>
@@ -1034,4 +1065,8 @@ function Page() {
     );
 }
 
+<<<<<<< HEAD
 export default Page;
+=======
+export default Page;
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb

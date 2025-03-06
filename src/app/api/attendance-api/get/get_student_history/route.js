@@ -8,7 +8,11 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const student_id = searchParams.get("student_id");
 
+<<<<<<< HEAD
     if (!user_email|| !student_id) {
+=======
+    if (!student_id) {
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
       return NextResponse.json(
         { error: "Missing student_id parameter" },
         { status: 400 }

@@ -98,9 +98,23 @@ function Page({ course_id , pages, setPages, user, role }) {
         const taEmail = toDeleteTA.email;
 
         try {
+<<<<<<< HEAD
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/delete?ta_email=${taEmail}&user_email=${userEmail}&course_id=${course_id}`
               );
+=======
+	const TA = {
+                ta_email: taEmail,
+                user_email: userEmail,
+                course_id:course_id,
+          }
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND}/ta-api/delete`,
+                {method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(TA),}
+            );            
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
 
             if (response.status == 200){
                 Swal.fire({
@@ -111,6 +125,10 @@ function Page({ course_id , pages, setPages, user, role }) {
                 })
                 fetchTA();
             }else{
+<<<<<<< HEAD
+=======
+		const errorData = response.
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
                 Swal.fire({
                     title: 'Error!',
                     text: 'TA has not been deleted!',
@@ -559,13 +577,21 @@ function Page({ course_id , pages, setPages, user, role }) {
                                                     >
                                                         <InsertDriveFileIcon sx={{ color: '#8F16AD', mr: 1 }} />
                                                         <ListItemText primary={file} sx={{ color: '#8F16AD' }} />
+<<<<<<< HEAD
                                                         <DeleteIcon 
+=======
+                                                        {role == "TEACHER" && (<DeleteIcon 
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
                                                             sx={{ color: '#8F16AD', mr: 1, cursor: 'pointer' }} 
                                                             onClick={(e) => {
                                                                 e.stopPropagation(); // Prevents triggering onClick for ListItem
                                                                 confirmDeleteFile(file)
                                                             }} 
+<<<<<<< HEAD
                                                         />
+=======
+                                                        />)}
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
                                                     </ListItem>
                                                 ))}
                                             </List>
@@ -583,4 +609,8 @@ function Page({ course_id , pages, setPages, user, role }) {
     );
 }
 
+<<<<<<< HEAD
 export default Page;
+=======
+export default Page;
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb

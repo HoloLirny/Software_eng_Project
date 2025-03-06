@@ -13,15 +13,37 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   app:
+<<<<<<< HEAD
     build: ./ 
+=======
+    build: ./
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
     ports:
       - "3002:3000"
     depends_on:
       - postgres
     environment:
+<<<<<<< HEAD
       DATABASE_URL: postgres://user:password@postgres:5432/mydb
     volumes:
       - ./backend:/usr/src/app  # Mount local backend directory
+=======
+      DATABASE_URL: postgres://user:password@10.10.184.148:7002/postgres
+    volumes:
+      - .:/usr/src/app  # Mount local backend directory
+    command: ["npm", "run", "dev"]  # Adjust based on your setup
+
+  backend:
+    build: ./
+    ports:
+      - "5002:3000"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://user:password@10.10.184.148:7002/postgres
+    volumes:
+       - .:/usr/src/app  # Mount local backend directory
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
     command: ["npm", "run", "dev"]  # Adjust based on your setup
 
 volumes:

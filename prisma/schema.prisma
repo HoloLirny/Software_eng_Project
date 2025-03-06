@@ -4,7 +4,11 @@
 
 generator client {
   provider      = "prisma-client-js"
+<<<<<<< HEAD
   binaryTargets = ["native", "debian-openssl-3.0.x"]
+=======
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
 }
 
 
@@ -103,7 +107,11 @@ model attendance {
 
 model attendance_detail{
   id          Int       @id @default(autoincrement())
+<<<<<<< HEAD
   date        String?   @unique
+=======
+  date        String?   
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
   course_id   String    
   description String?
   course      course    @relation(fields: [course_id], references: [course_id], onDelete: Cascade)

@@ -15,7 +15,11 @@ export async function GET(req: Request) {
   const mode = searchParams.get("mode") || "time"; // Default to time-based mode
   const courseId = searchParams.get("courseId") || "";
   const user_email = searchParams.get("email") || "";
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
   const token = uuidv4();
   const expireTime = Number(searchParams.get("expireTime")) || 10; // Default to 10 seconds if null
   const expiresAt = Date.now() + expireTime * 1000; // 10 seconds expiration
@@ -28,7 +32,11 @@ export async function GET(req: Request) {
     user_email,
   };
 
+<<<<<<< HEAD
   const baseUrl = `http://${process.env.NEXT_PUBLIC_BACKEND}:3000/attendance`;
+=======
+  const baseUrl = `${process.env.NEXTAUTH_URL}/attendance`;
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
   const url = `${baseUrl}/${token}`; // For testing
 
   return new Response(JSON.stringify({ url, token }), {
@@ -42,7 +50,11 @@ export async function POST(req: Request) {
     const { token } = await req.json();
     const record = tokens[token];
     const now = Date.now();
+<<<<<<< HEAD
 
+=======
+    console.log("test token in api ",token)
+>>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
     if (!record) {
       return new Response(
         JSON.stringify({ valid: false, message: "Invalid Token" }),
