@@ -1,11 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-<<<<<<< HEAD
-import { Html5QrcodeScanner } from 'html5-qrcode';
-=======
 import { Html5QrcodeScanner,Html5QrcodeScanType } from 'html5-qrcode';
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
 import { ScaleLoader } from 'react-spinners';
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useRouter } from "next/navigation";
@@ -21,11 +17,7 @@ const QRCodeScanner = ({student_id}) => {
     const [validToken, setValidToken] = useState<boolean>(false);
     const [userEmail, setUserEmail] = useState("");
     
-<<<<<<< HEAD
-    const checkAttendance = async () => {
-=======
     const checkAttendance = async (courseId, user_email) => {
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
         try {
             const date = new Date(); // Current date and time
             const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -39,11 +31,7 @@ const QRCodeScanner = ({student_id}) => {
                     course_id: courseId,
                     student_id: student_id,
                     date: day,
-<<<<<<< HEAD
-                    user_email: userEmail,
-=======
                     user_email: user_email,
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
                 })
             })
 
@@ -67,15 +55,8 @@ const QRCodeScanner = ({student_id}) => {
                 text: 'Check success',
                 icon: 'success',
                 confirmButtonText: 'OK',
-<<<<<<< HEAD
-            }).then(() => {
-                router.push("../");
-            });
-
-=======
             })
 		router.push("../");
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
         } catch (error){
             Swal.fire({
                 title: 'Error!',
@@ -87,11 +68,7 @@ const QRCodeScanner = ({student_id}) => {
     }
     const handleScanQRCode = async (result) => {
         const token = result.split('/').pop(); // Extracts the last part after the last slash
-<<<<<<< HEAD
-        
-=======
         console.log("result",result , "........." , token)
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
         if (token) {
             try {
             const res = await fetch("/api/generate-qr", {
@@ -103,24 +80,15 @@ const QRCodeScanner = ({student_id}) => {
             });
 
             const data = await res.json();
-<<<<<<< HEAD
-    
-=======
    
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
             if (data.valid) {
                 console.log(data)
                 setStatus("Attendance Marked Successfully");
                 setCourseId(data.courseId || "Unknown Course ID");
                 setUserEmail(data.user_email || "")
                 setMode(data.mode || "Unknown Mode");
-<<<<<<< HEAD
-                setValidToken(true);
-                checkAttendance();
-=======
                 await checkAttendance(data.courseId, data.user_email);
 
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
             } else {
                 setStatus("Token Expired. Please scan a new QR code.");
                 setCourseId("N/A");
@@ -138,21 +106,6 @@ const QRCodeScanner = ({student_id}) => {
             setCourseId("N/A");
             return;
         }
-<<<<<<< HEAD
-
-        if (validToken) {
-            checkAttendance();
-        }
-    };
-
-    useEffect(() => {
-        if (typeof window === 'undefined') return; // Ensure client-side execution
-        const scanner = new Html5QrcodeScanner(
-            'reader',
-            {
-                qrbox: { width: 250, height: 250 },
-                fps: 5,
-=======
     };
 
 
@@ -167,25 +120,10 @@ const QRCodeScanner = ({student_id}) => {
                 aspectRatio: 1.0,  // Square scanner
                 rememberLastUsedCamera: true,  // Remembers last used camera
                 supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA] // Only use camera
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
             },
             false
         );
 
-<<<<<<< HEAD
-        scanner.render(
-            (result) => {
-                scanner.clear();
-               
-                setScanResult(result);
-            },
-            (err) => console.warn(err)
-        );
-
-        return () => scanner.clear(); // Cleanup scanner on unmount
-    }, []);
-
-=======
         const onScanSuccess = (result) => {
             scanner.clear();  // Stop scanning after successful result
             setScanResult(result);  // Set the scanned result
@@ -205,7 +143,6 @@ const QRCodeScanner = ({student_id}) => {
         };
     }, []);    
  
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
     return (
         <Box
         sx={{
@@ -235,11 +172,7 @@ const QRCodeScanner = ({student_id}) => {
           >
               <h2>QR Code Scanner</h2>
               {scanResult ? (
-<<<<<<< HEAD
-                  <p>Scanned Result: {scanResult}</p>
-=======
                   <></>
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
               ) : (
                   <div id="reader"></div>
               )}

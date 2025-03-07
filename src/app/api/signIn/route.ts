@@ -89,10 +89,7 @@ export async function POST(
 
   //get access token from EntraID
   const accessToken = await getEmtraIDAccessTokenAsync(authorizationCode);
-<<<<<<< HEAD
-=======
 	console.log("access token : ", accessToken);
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
   if (!accessToken)
     return NextResponse.json(
       { ok: false, message: "Cannot get EntraID access token" },
@@ -101,11 +98,7 @@ export async function POST(
 
   //get basic info
   const cmuBasicInfo = await getCMUBasicInfoAsync(accessToken);
-<<<<<<< HEAD
-
-=======
 	console.log("cmubasicinfo : ",cmuBasicInfo);
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
   if (!cmuBasicInfo)
     return NextResponse.json(
       { ok: false, message: "Cannot get cmu basic info" },
@@ -186,20 +179,13 @@ export async function POST(
       expiresIn: "1h", // Token will last for one hour only
     }
   );
-<<<<<<< HEAD
-
-=======
   console.log("this is token " ,token)
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
   //This apptoken not EntraIDtoken.
   //Write token in cookie storage of client's browser
   //Note that this is server side code. We can write client cookie from the server. This is normal.
   //You can view cookie in the browser devtools (F12). Open tab "Application" -> "Cookies"
   const cookieStore = await cookies();
-<<<<<<< HEAD
-=======
   console.log("Node_env",process.env.NODE_ENV);
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
   cookieStore.set({
     name: "cmu-entraid-example-token",
     value: token,
@@ -207,20 +193,11 @@ export async function POST(
     //Set httpOnly to true so that client JavaScript cannot read or modify token
     //And the created token can be read by server side only
     httpOnly: true,
-<<<<<<< HEAD
-    sameSite: "lax",
-=======
     sameSite: "None",
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
     //force cookie to use HTTPS only in production code
     secure: process.env.NODE_ENV === "production",
     path: "/",
     //change to your hostname in production
-<<<<<<< HEAD
-    domain: "localhost",
-  });
-  return NextResponse.json({ ok: true });
-=======
     domain: process.env.NODE_ENV === "production" ?  "checkchue.se.cpe.eng.cmu.ac.th" : "localhost",
   });
 
@@ -236,5 +213,4 @@ export async function POST(
 
 
   return NextResponse.json({ ok: "true now signin success" });
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
 }

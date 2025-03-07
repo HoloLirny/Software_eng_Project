@@ -4,16 +4,10 @@ import prisma from "../../../../../prisma/prisma";
 export async function POST(req) {
   try {
     const { course_id, student_id, date, user_email } = await req.json();
-<<<<<<< HEAD
-
-    // Validate input
-    if (!course_id || !student_id || !date || !user_email) {
-=======
 	console.log("test course id ",course_id ,student_id ,date ,user_email )
     // Validate input
     if (!course_id || !student_id || !date || !user_email) {
 	
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
       return new Response(
         JSON.stringify({
           message: "course_id, student_id, user_email and date are required",

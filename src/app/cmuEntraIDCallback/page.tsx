@@ -25,27 +25,6 @@ export default function cmuEntraIDCallback() {
 
       if (!code) return; // Wait until the authorization code is available
 
-<<<<<<< HEAD
-      axios
-        .post<SignInResponse>("../api/signIn", { authorizationCode: code })
-        .then((resp) => {
-          if (resp.data.ok) {
-            router.push("../");
-            
-          }
-        })
-        .catch((error: AxiosError<SignInResponse>) => {
-          if (!error.response) {
-            setMessage(
-              "Cannot connect to CMU EntraID Server. Please try again later."
-            );
-          } else if (!error.response.data.ok) {
-            setMessage(error.response.data.message);
-          } else {
-            setMessage("Unknown error occurred. Please try again later.");
-          }
-        });
-=======
 	  axios
 	  .post<SignInResponse>(`${process.env.NEXT_PUBLIC_BACKEND}/signIn`, 
 	    { authorizationCode: code },
@@ -68,7 +47,6 @@ export default function cmuEntraIDCallback() {
 	    }
 	  });
 
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
     };
 
     checkUserAndSignIn();

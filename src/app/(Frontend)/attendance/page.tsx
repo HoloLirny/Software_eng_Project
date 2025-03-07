@@ -501,21 +501,13 @@ function Page({ course_id , pages, setPages, user, role }) {
   }
   useEffect(() => {
     fetchAttendanceData();
-<<<<<<< HEAD
-  }, [students, columns]);
-=======
   }, [students, columns,page]);
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
 
   useEffect(() => {
     fetchStudenInClass();
     fetchDates();
     fetchAttendanceData();
-<<<<<<< HEAD
-  }, []);
-=======
   }, [page]);
->>>>>>> 1fdc07e7fc82db24daea4ad2c4d12b1f89d3a4eb
 
   return (
     <>
